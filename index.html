@@ -316,32 +316,57 @@
 
       <!-- LEFT COLUMN: code + name + team + join -->
       <div class="join-card join-left">
+
+        <!-- Room Code: 4 individual digit boxes -->
         <div>
-          <label class="code-label">Room Code (from your teacher)</label>
-          <input class="code-input" id="code-input" maxlength="4" placeholder="----" autocomplete="off">
+          <label class="code-label">Room Code</label>
+          <div class="code-input-wrap" id="code-digit-wrap">
+            <input class="code-digit" id="cd-0" maxlength="1" placeholder="·" autocomplete="off" spellcheck="false" inputmode="text">
+            <input class="code-digit" id="cd-1" maxlength="1" placeholder="·" autocomplete="off" spellcheck="false" inputmode="text">
+            <input class="code-digit" id="cd-2" maxlength="1" placeholder="·" autocomplete="off" spellcheck="false" inputmode="text">
+            <input class="code-digit" id="cd-3" maxlength="1" placeholder="·" autocomplete="off" spellcheck="false" inputmode="text">
+          </div>
+          <!-- Hidden combined input used by joinRoom() -->
+          <input class="code-input" id="code-input" maxlength="4" autocomplete="off" tabindex="-1" aria-hidden="true">
         </div>
-        <div class="field-group">
-          <label class="field-label" style="color:var(--text-mid);">Your Name</label>
-          <input class="name-input" id="inp-join-name" maxlength="14" placeholder="Enter your name..." autocomplete="off">
-        </div>
+
+        <!-- Name -->
         <div>
-          <label class="field-label" style="color:var(--text-mid);margin-bottom:10px;display:block;">Pick Your Team</label>
+          <label class="code-label" for="inp-join-name">Your Name</label>
+          <div class="name-input-wrap">
+            <input class="name-input" id="inp-join-name" maxlength="14" placeholder="Enter your name…" autocomplete="off">
+          </div>
+        </div>
+
+        <!-- Team -->
+        <div>
+          <label class="code-label">Pick Your Team</label>
           <div class="team-select-grid">
             <div id="team-opt-blue" class="team-opt-btn team-opt-blue selected" data-team="blue">
               <div class="team-opt-swatch blue-swatch"></div>
-              <div><div style="font-family:var(--font-d);font-size:17px;color:var(--blue);">BLUE</div><div class="team-name-label">Left side</div></div>
+              <div>
+                <div class="team-opt-name" style="color:var(--blue);">BLUE</div>
+                <div class="team-name-label">Left side</div>
+              </div>
             </div>
             <div id="team-opt-red" class="team-opt-btn team-opt-red" data-team="red">
               <div class="team-opt-swatch red-swatch"></div>
-              <div><div style="font-family:var(--font-d);font-size:17px;color:var(--red);">RED</div><div class="team-name-label">Right side</div></div>
+              <div>
+                <div class="team-opt-name" style="color:var(--red);">RED</div>
+                <div class="team-name-label">Right side</div>
+              </div>
             </div>
           </div>
         </div>
+
         <div class="join-error" id="join-error"></div>
-        <div style="background:#fff8e6;border:2px solid #ffd97a;border-radius:10px;padding:10px 14px;font-size:11px;font-weight:700;color:#8a6400;text-align:center;line-height:1.5;">
-          🎓 <strong>Honour Code:</strong> No searching answers online during the match. Play fair and represent your team!
+
+        <!-- Honour code -->
+        <div style="background:linear-gradient(135deg,#fff8e6,#fff3d0);border:2px solid #ffd97a;border-radius:12px;padding:10px 14px;font-size:11px;font-weight:700;color:#8a6400;text-align:center;line-height:1.6;">
+          🎓 <strong>Honour Code:</strong> No searching answers online. Play fair!
         </div>
-        <button class="btn btn-red" id="btn-join" disabled>JOIN ROOM →</button>
+
+        <button class="btn btn-red" id="btn-join" disabled style="width:100%;font-size:16px;padding:14px;letter-spacing:1px;margin-top:2px;">JOIN ROOM →</button>
       </div>
 
       <!-- RIGHT COLUMN: avatar builder -->
@@ -885,141 +910,6 @@ function triggerStumble(team){
   charAnim[team].lunge = 0;
 }
 
-// Draw a tiny pixel character onto the rope canvas
-// px,py = center-bottom position, scale = pixel block size, facing = 1(right) or -1(left)
-function drawCharOnRope(ctx, av, teamColor, cx, cy, scale, facing, streakLevel){
-  const S = scale;
-  const W = 12, H = 16;
-  // offset so character stands with feet at cy, centered at cx
-  const ox = cx - (W*S)/2;
-  const oy = cy - H*S;
-  const skin = SKIN_COLORS[av.skin] || SKIN_COLORS[0];
-  const hair = HAIR_COLORS[av.hair] || HAIR_COLORS[0];
-  const tc = teamColor;
-
-  // Fire/energy aura for streak
-  if(streakLevel >= 1){
-    const auraColors = ['#ff8c00','#ff4500','#ff0000'];
-    const auraColor = auraColors[Math.min(streakLevel-1, 2)];
-    const intensity = Math.min(streakLevel, 3);
-    // Animated flicker using ropeTime
-    const flicker = 0.6 + 0.4*Math.sin(ropeTime*8 + cx);
-    const auraSize = (S*3 + intensity*S*1.5) * flicker;
-    const grd = ctx.createRadialGradient(cx, cy-H*S*0.5, 0, cx, cy-H*S*0.5, H*S*0.8+auraSize);
-    grd.addColorStop(0, `rgba(255,220,0,${0.15*intensity*flicker})`);
-    grd.addColorStop(0.4, `${auraColor}${Math.round(0.25*intensity*flicker*255).toString(16).padStart(2,'0')}`);
-    grd.addColorStop(1, 'rgba(255,69,0,0)');
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.ellipse(cx, cy-H*S*0.45, W*S*0.7+auraSize*0.5, H*S*0.65+auraSize*0.4, 0, 0, Math.PI*2);
-    ctx.fill();
-    // Fire particles
-    for(let i=0;i<3*intensity;i++){
-      const angle = ropeTime*3 + i*2.1;
-      const r = (H*S*0.4 + auraSize*0.3) * (0.7+0.3*Math.sin(ropeTime*5+i));
-      const fx = cx + Math.cos(angle)*r*0.6;
-      const fy = cy - H*S*0.5 + Math.sin(angle)*r*0.4 - Math.abs(Math.sin(ropeTime*4+i))*S*2;
-      const fs = S*(0.8+0.5*Math.sin(ropeTime*6+i*1.3));
-      ctx.fillStyle = i%2===0 ? '#ff8c00' : '#fff176';
-      ctx.fillRect(fx-fs/2, fy-fs/2, fs, fs);
-    }
-  }
-
-  ctx.save();
-  if(facing === -1){
-    // Mirror for red team (facing left)
-    ctx.translate(cx*2, 0);
-    ctx.scale(-1, 1);
-  }
-
-  function px(x, y, c){
-    ctx.fillStyle = c;
-    ctx.fillRect(ox + x*S, oy + y*S, S, S);
-  }
-
-  // Body
-  for(let y=8;y<13;y++) for(let x=2;x<10;x++) px(x,y,tc);
-  for(let y=8;y<12;y++){ px(1,y,tc); px(10,y,tc); }
-  for(let y=11;y<13;y++){ px(0,y,skin); px(11,y,skin); }
-  // Hands grabbing rope (slightly forward)
-  px(11,10,'#c8924a'); px(12,10,'#c8924a');
-
-  // Legs (pulling stance - bent)
-  for(let y=13;y<15;y++){ px(2,y,'#2c3e50'); px(3,y,'#2c3e50'); }
-  for(let y=14;y<16;y++){ px(8,y,'#2c3e50'); px(9,y,'#2c3e50'); }
-  px(1,14,'#2c3e50'); px(10,15,'#2c3e50');
-  // Shoes
-  px(1,15,'#1a1a1a'); px(2,15,'#1a1a1a'); px(3,15,'#1a1a1a');
-  px(8,15,'#1a1a1a'); px(9,15,'#1a1a1a'); px(10,15,'#1a1a1a');
-
-  // Neck + Head
-  for(let y=6;y<8;y++) for(let x=4;x<8;x++) px(x,y,skin);
-  for(let y=1;y<7;y++) for(let x=2;x<10;x++) px(x,y,skin);
-
-  // Hair
-  for(let x=2;x<10;x++){ px(x,0,hair); px(x,1,hair); }
-  px(2,2,hair); px(2,3,hair); px(9,2,hair); px(9,3,hair);
-
-  // Eyes
-  const eyeStyle = EYE_STYLES[av.eyes] || 'normal';
-  if(eyeStyle==='normal'){ px(4,3,'#1a1a1a'); px(4,4,'#fff'); px(7,3,'#1a1a1a'); px(7,4,'#fff'); }
-  else if(eyeStyle==='happy'){ px(4,3,'#1a1a1a'); px(5,4,'#1a1a1a'); px(7,3,'#1a1a1a'); px(6,4,'#1a1a1a'); }
-  else if(eyeStyle==='cool'){ px(3,3,'#1a1a1a'); px(4,3,'#1a1a1a'); px(5,3,'#1a1a1a'); px(7,3,'#1a1a1a'); px(8,3,'#1a1a1a'); px(9,3,'#1a1a1a'); }
-  else if(eyeStyle==='sleepy'){ px(4,3,'#1a1a1a'); px(5,3,'#1a1a1a'); px(7,3,'#1a1a1a'); px(8,3,'#1a1a1a'); }
-  else if(eyeStyle==='star'){ px(4,3,'#FFD700'); px(5,2,'#FFD700'); px(6,3,'#FFD700'); px(5,4,'#FFD700'); px(3,3,'#FFD700'); px(7,3,'#FFD700'); px(8,2,'#FFD700'); px(9,3,'#FFD700'); px(8,4,'#FFD700'); }
-
-  // Mouth (determined grimace while pulling)
-  px(4,5,'#1a1a1a'); px(5,5,'#1a1a1a'); px(6,5,'#1a1a1a'); px(7,5,'#1a1a1a');
-
-  // Accessory
-  const acc = ACCESSORIES[av.accessory] || 'none';
-  if(acc==='crown'){
-    ctx.fillStyle='#FFD700';
-    ctx.fillRect(ox+3*S, oy, 7*S, S);
-    ctx.fillRect(ox+3*S, oy-S, S, S);
-    ctx.fillRect(ox+5*S, oy-S, S, S);
-    ctx.fillRect(ox+7*S, oy-S, S, S);
-    ctx.fillRect(ox+9*S, oy-S, S, S);
-  } else if(acc==='glasses'){
-    ctx.fillStyle='rgba(0,180,255,0.35)';
-    ctx.fillRect(ox+3*S,oy+3*S,3*S,2*S);
-    ctx.fillRect(ox+7*S,oy+3*S,3*S,2*S);
-    ctx.fillStyle='#333';
-    ctx.fillRect(ox+3*S,oy+3*S,3*S,S*0.5);
-    ctx.fillRect(ox+7*S,oy+3*S,3*S,S*0.5);
-    ctx.fillRect(ox+6*S,oy+3*S,S,S*0.5);
-    ctx.fillRect(ox+2*S,oy+3*S,S,S*0.5);
-    ctx.fillRect(ox+10*S,oy+3*S,S,S*0.5);
-  } else if(acc==='hat'){
-    ctx.fillStyle='#2c3e50';
-    ctx.fillRect(ox+2*S,oy,8*S,S);
-    ctx.fillRect(ox+3*S,oy-S,6*S,S*2);
-  } else if(acc==='headband'){
-    ctx.fillStyle='#e74c3c';
-    ctx.fillRect(ox+2*S,oy+2*S,8*S,S);
-  } else if(acc==='halo'){
-    ctx.save();
-    ctx.strokeStyle='rgba(255,220,0,0.9)';
-    ctx.lineWidth=S*0.6;
-    ctx.beginPath();
-    ctx.ellipse(ox+6*S, oy, 3.5*S, S*0.7, 0, 0, Math.PI*2);
-    ctx.stroke();
-    ctx.restore();
-  } else if(acc==='horns'){
-    ctx.fillStyle='#c0392b';
-    ctx.fillRect(ox+3*S,oy-S*2,S,S*2);
-    ctx.fillRect(ox+8*S,oy-S*2,S,S*2);
-    ctx.fillRect(ox+3*S,oy-S*2,S*2,S);
-    ctx.fillRect(ox+7*S,oy-S*2,S*2,S);
-  } else if(acc==='cap'){
-    ctx.fillStyle=tc;
-    ctx.fillRect(ox+2*S,oy+S,8*S,S);
-    ctx.fillRect(ox+3*S,oy-S,5*S,S*2);
-    ctx.fillRect(ox+8*S,oy+S,3*S,S*0.5);
-  }
-
-  ctx.restore();
-}
 
 function drawRope(ts){
   ropeRAF = requestAnimationFrame(drawRope);
@@ -1320,7 +1210,6 @@ function applyRoomState(room){
 //  PIXEL AVATAR SYSTEM
 // ══════════════════════════════════════════════
 
-// Palette options
 const SKIN_COLORS=['#FDDBB4','#F5C28A','#E0965A','#C47038','#8D4A2A','#5C2D0E'];
 const HAIR_COLORS=['#1a1a1a','#4a2c0a','#8B4513','#D2691E','#FFD700','#C0392B','#8E44AD','#2980B9','#E8E8E8','#FF69B4'];
 const EYE_STYLES=['normal','happy','cool','sleepy','star'];
@@ -1329,105 +1218,168 @@ const ACC_ICONS={'none':'✕','crown':'👑','glasses':'🕶','hat':'🎩','head
 
 let AV = { skin:0, hair:0, eyes:0, accessory:0 };
 
-// Draw pixel character onto a canvas context
-// size: pixel size of each "pixel block" (e.g. 4 = 4x4 real pixels per pixel)
 function drawPixelChar(ctx, av, teamColor, size=4){
-  const W=12, H=16; // pixel grid
+  const W=12, H=16;
   ctx.clearRect(0,0,W*size,H*size);
-
   const skin=SKIN_COLORS[av.skin]||SKIN_COLORS[0];
   const hair=HAIR_COLORS[av.hair]||HAIR_COLORS[0];
   const tc=teamColor||'#6633cc';
+  function px(x,y,col){ ctx.fillStyle=col; ctx.fillRect(x*size,y*size,size,size); }
 
-  function px(x,y,c){ ctx.fillStyle=c; ctx.fillRect(x*size,y*size,size,size); }
-
-  // Body (team color shirt)
+  // Body (team-colour shirt)
   for(let y=8;y<13;y++) for(let x=2;x<10;x++) px(x,y,tc);
-  // Arms
   for(let y=8;y<12;y++){ px(1,y,tc); px(10,y,tc); }
   // Hands
   for(let y=11;y<13;y++){ px(0,y,skin); px(11,y,skin); }
   // Legs
-  for(let y=13;y<16;y++){
-    px(2,y,'#2c3e50'); px(3,y,'#2c3e50');
-    px(8,y,'#2c3e50'); px(9,y,'#2c3e50');
-  }
+  for(let y=13;y<16;y++){ px(2,y,'#2c3e50'); px(3,y,'#2c3e50'); px(8,y,'#2c3e50'); px(9,y,'#2c3e50'); }
   // Shoes
   px(1,15,'#1a1a1a'); px(2,15,'#1a1a1a'); px(3,15,'#1a1a1a');
   px(8,15,'#1a1a1a'); px(9,15,'#1a1a1a'); px(10,15,'#1a1a1a');
-
-  // Neck
+  // Neck + Head
   for(let y=6;y<8;y++) for(let x=4;x<8;x++) px(x,y,skin);
-  // Head
   for(let y=1;y<7;y++) for(let x=2;x<10;x++) px(x,y,skin);
-
   // Hair
-  const eyeStyle=EYE_STYLES[av.eyes]||'normal';
-  // Hair top
-  for(let x=2;x<10;x++) px(x,1,hair);
-  for(let x=2;x<10;x++) px(x,0,hair);
-  // Hair sides
+  for(let x=2;x<10;x++){ px(x,0,hair); px(x,1,hair); }
   px(2,2,hair); px(2,3,hair); px(9,2,hair); px(9,3,hair);
-
   // Eyes
+  const eyeStyle=EYE_STYLES[av.eyes]||'normal';
   if(eyeStyle==='normal'){ px(4,3,'#1a1a1a'); px(4,4,'#fff'); px(7,3,'#1a1a1a'); px(7,4,'#fff'); }
   else if(eyeStyle==='happy'){ px(4,3,'#1a1a1a'); px(5,4,'#1a1a1a'); px(7,3,'#1a1a1a'); px(6,4,'#1a1a1a'); }
   else if(eyeStyle==='cool'){ px(3,3,'#1a1a1a'); px(4,3,'#1a1a1a'); px(5,3,'#1a1a1a'); px(7,3,'#1a1a1a'); px(8,3,'#1a1a1a'); px(9,3,'#1a1a1a'); }
   else if(eyeStyle==='sleepy'){ px(4,3,'#1a1a1a'); px(5,3,'#1a1a1a'); px(7,3,'#1a1a1a'); px(8,3,'#1a1a1a'); }
   else if(eyeStyle==='star'){ px(4,3,'#FFD700'); px(5,2,'#FFD700'); px(6,3,'#FFD700'); px(5,4,'#FFD700'); px(3,3,'#FFD700'); px(7,3,'#FFD700'); px(8,2,'#FFD700'); px(9,3,'#FFD700'); px(8,4,'#FFD700'); }
-
-  // Mouth (smile)
+  // Mouth
   px(4,5,'#1a1a1a'); px(7,5,'#1a1a1a'); px(5,6,'#1a1a1a'); px(6,6,'#1a1a1a');
-
   // Accessory
   const acc=ACCESSORIES[av.accessory]||'none';
   if(acc==='crown'){
-    px(3,0,'#FFD700'); px(5,0,'#FFD700'); px(7,0,'#FFD700'); px(9,0,'#FFD700');
-    for(let x=3;x<10;x++) px(x,-1<0?0:0,'#FFD700');
     ctx.fillStyle='#FFD700';
     ctx.fillRect(3*size,0,7*size,size);
-    px(4,-1<0?0:1,'#FFD700'); px(6,0,'#FFD700'); px(8,0,'#FFD700');
-    // spikes
-    ctx.fillStyle='#FFD700';
-    ctx.fillRect(3*size,0,size,size*2);
-    ctx.fillRect(5*size,0,size,size*2);
-    ctx.fillRect(7*size,0,size,size*2);
-    ctx.fillRect(9*size,0,size,size*2);
-    ctx.fillStyle='#FFD700';
+    ctx.fillRect(3*size,0,size,size*2); ctx.fillRect(5*size,0,size,size*2);
+    ctx.fillRect(7*size,0,size,size*2); ctx.fillRect(9*size,0,size,size*2);
     ctx.fillRect(3*size,size,7*size,size);
   } else if(acc==='glasses'){
     ctx.fillStyle='rgba(0,180,255,0.35)';
-    ctx.fillRect(3*size,3*size,3*size,2*size);
-    ctx.fillRect(7*size,3*size,3*size,2*size);
-    ctx.fillStyle='#333'; ctx.fillRect(3*size,3*size,3*size,size/2);
-    ctx.fillRect(7*size,3*size,3*size,size/2);
-    ctx.fillRect(6*size,3*size,size,size/2);
-    ctx.fillRect(2*size,3*size,size,size/2);
-    ctx.fillRect(10*size,3*size,size,size/2);
+    ctx.fillRect(3*size,3*size,3*size,2*size); ctx.fillRect(7*size,3*size,3*size,2*size);
+    ctx.fillStyle='#333';
+    ctx.fillRect(3*size,3*size,3*size,size/2); ctx.fillRect(7*size,3*size,3*size,size/2);
+    ctx.fillRect(6*size,3*size,size,size/2); ctx.fillRect(2*size,3*size,size,size/2); ctx.fillRect(10*size,3*size,size,size/2);
   } else if(acc==='hat'){
     ctx.fillStyle='#2c3e50';
-    ctx.fillRect(2*size,0,8*size,size);
-    ctx.fillRect(3*size,-size,6*size,size*2);
+    ctx.fillRect(2*size,0,8*size,size); ctx.fillRect(3*size,-size,6*size,size*2);
   } else if(acc==='headband'){
-    ctx.fillStyle='#e74c3c';
-    ctx.fillRect(2*size,2*size,8*size,size);
+    ctx.fillStyle='#e74c3c'; ctx.fillRect(2*size,2*size,8*size,size);
   } else if(acc==='halo'){
-    ctx.fillStyle='rgba(255,220,0,0.7)';
-    ctx.beginPath(); ctx.ellipse(6*size, size*0.5, 3.5*size, size*0.6, 0, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle='rgba(255,220,0,0.9)';
-    ctx.beginPath(); ctx.ellipse(6*size, size*0.5, 3.5*size, size*0.6, 0, 0, Math.PI*2); ctx.stroke();
+    ctx.strokeStyle='rgba(255,220,0,0.9)'; ctx.lineWidth=size*0.35;
+    ctx.beginPath(); ctx.ellipse(6*size,size*0.5,3.5*size,size*0.6,0,0,Math.PI*2); ctx.stroke();
   } else if(acc==='horns'){
     ctx.fillStyle='#c0392b';
-    ctx.fillRect(3*size,0,size,size*2);
-    ctx.fillRect(8*size,0,size,size*2);
-    ctx.fillRect(3*size,0,size*2,size);
-    ctx.fillRect(7*size,0,size*2,size);
+    ctx.fillRect(3*size,0,size,size*2); ctx.fillRect(8*size,0,size,size*2);
+    ctx.fillRect(3*size,0,size*2,size); ctx.fillRect(7*size,0,size*2,size);
   } else if(acc==='cap'){
     ctx.fillStyle=tc;
-    ctx.fillRect(2*size,size,8*size,size);
-    ctx.fillRect(3*size,0,5*size,size*2);
+    ctx.fillRect(2*size,size,8*size,size); ctx.fillRect(3*size,0,5*size,size*2);
     ctx.fillRect(8*size,size,3*size,size/2);
   }
+}
+
+// Rope-canvas character drawing (with streak aura)
+function drawCharOnRope(ctx, av, teamColor, cx, cy, scale, facing, streakLevel){
+  const S=scale, W=12, H=16;
+  const ox=cx-(W*S)/2, oy=cy-H*S;
+  const skin=SKIN_COLORS[av.skin]||SKIN_COLORS[0];
+  const hair=HAIR_COLORS[av.hair]||HAIR_COLORS[0];
+  const tc=teamColor;
+
+  if(streakLevel>=1){
+    const auraColors=['#ff8c00','#ff4500','#ff0000'];
+    const auraColor=auraColors[Math.min(streakLevel-1,2)];
+    const intensity=Math.min(streakLevel,3);
+    const t=typeof ropeTime!=='undefined'?ropeTime:0;
+    const flicker=0.6+0.4*Math.sin(t*8+cx);
+    const auraSize=(S*3+intensity*S*1.5)*flicker;
+    const grd=ctx.createRadialGradient(cx,cy-H*S*0.5,0,cx,cy-H*S*0.5,H*S*0.8+auraSize);
+    grd.addColorStop(0,`rgba(255,220,0,${0.15*intensity*flicker})`);
+    grd.addColorStop(0.4,`${auraColor}${Math.round(0.25*intensity*flicker*255).toString(16).padStart(2,'0')}`);
+    grd.addColorStop(1,'rgba(255,69,0,0)');
+    ctx.fillStyle=grd;
+    ctx.beginPath();
+    ctx.ellipse(cx,cy-H*S*0.45,W*S*0.7+auraSize*0.5,H*S*0.65+auraSize*0.4,0,0,Math.PI*2);
+    ctx.fill();
+    for(let i=0;i<3*intensity;i++){
+      const angle=t*3+i*2.1;
+      const r=(H*S*0.4+auraSize*0.3)*(0.7+0.3*Math.sin(t*5+i));
+      const fx=cx+Math.cos(angle)*r*0.6;
+      const fy=cy-H*S*0.5+Math.sin(angle)*r*0.4-Math.abs(Math.sin(t*4+i))*S*2;
+      const fs=S*(0.8+0.5*Math.sin(t*6+i*1.3));
+      ctx.fillStyle=i%2===0?'#ff8c00':'#fff176';
+      ctx.fillRect(fx-fs/2,fy-fs/2,fs,fs);
+    }
+  }
+
+  ctx.save();
+  if(facing===-1){ ctx.translate(cx*2,0); ctx.scale(-1,1); }
+
+  function px(x,y,col){ ctx.fillStyle=col; ctx.fillRect(ox+x*S,oy+y*S,S,S); }
+
+  // Body
+  for(let y=8;y<13;y++) for(let x=2;x<10;x++) px(x,y,tc);
+  for(let y=8;y<12;y++){ px(1,y,tc); px(10,y,tc); }
+  for(let y=11;y<13;y++){ px(0,y,skin); px(11,y,skin); }
+  px(11,10,'#c8924a'); px(12,10,'#c8924a'); // hands on rope
+  // Legs (pulling stance)
+  for(let y=13;y<15;y++){ px(2,y,'#2c3e50'); px(3,y,'#2c3e50'); }
+  for(let y=14;y<16;y++){ px(8,y,'#2c3e50'); px(9,y,'#2c3e50'); }
+  px(1,14,'#2c3e50'); px(10,15,'#2c3e50');
+  px(1,15,'#1a1a1a'); px(2,15,'#1a1a1a'); px(3,15,'#1a1a1a');
+  px(8,15,'#1a1a1a'); px(9,15,'#1a1a1a'); px(10,15,'#1a1a1a');
+  // Neck + Head
+  for(let y=6;y<8;y++) for(let x=4;x<8;x++) px(x,y,skin);
+  for(let y=1;y<7;y++) for(let x=2;x<10;x++) px(x,y,skin);
+  // Hair
+  for(let x=2;x<10;x++){ px(x,0,hair); px(x,1,hair); }
+  px(2,2,hair); px(2,3,hair); px(9,2,hair); px(9,3,hair);
+  // Eyes
+  const eyeStyle=EYE_STYLES[av.eyes]||'normal';
+  if(eyeStyle==='normal'){ px(4,3,'#1a1a1a'); px(4,4,'#fff'); px(7,3,'#1a1a1a'); px(7,4,'#fff'); }
+  else if(eyeStyle==='happy'){ px(4,3,'#1a1a1a'); px(5,4,'#1a1a1a'); px(7,3,'#1a1a1a'); px(6,4,'#1a1a1a'); }
+  else if(eyeStyle==='cool'){ px(3,3,'#1a1a1a'); px(4,3,'#1a1a1a'); px(5,3,'#1a1a1a'); px(7,3,'#1a1a1a'); px(8,3,'#1a1a1a'); px(9,3,'#1a1a1a'); }
+  else if(eyeStyle==='sleepy'){ px(4,3,'#1a1a1a'); px(5,3,'#1a1a1a'); px(7,3,'#1a1a1a'); px(8,3,'#1a1a1a'); }
+  else if(eyeStyle==='star'){ px(4,3,'#FFD700'); px(5,2,'#FFD700'); px(6,3,'#FFD700'); px(5,4,'#FFD700'); px(3,3,'#FFD700'); px(7,3,'#FFD700'); px(8,2,'#FFD700'); px(9,3,'#FFD700'); px(8,4,'#FFD700'); }
+  // Mouth (grimace while pulling)
+  px(4,5,'#1a1a1a'); px(5,5,'#1a1a1a'); px(6,5,'#1a1a1a'); px(7,5,'#1a1a1a');
+  // Accessory
+  const acc=ACCESSORIES[av.accessory]||'none';
+  if(acc==='crown'){
+    ctx.fillStyle='#FFD700';
+    ctx.fillRect(ox+3*S,oy,7*S,S);
+    ctx.fillRect(ox+3*S,oy-S,S,S); ctx.fillRect(ox+5*S,oy-S,S,S);
+    ctx.fillRect(ox+7*S,oy-S,S,S); ctx.fillRect(ox+9*S,oy-S,S,S);
+  } else if(acc==='glasses'){
+    ctx.fillStyle='rgba(0,180,255,0.35)';
+    ctx.fillRect(ox+3*S,oy+3*S,3*S,2*S); ctx.fillRect(ox+7*S,oy+3*S,3*S,2*S);
+    ctx.fillStyle='#333';
+    ctx.fillRect(ox+3*S,oy+3*S,3*S,S*0.5); ctx.fillRect(ox+7*S,oy+3*S,3*S,S*0.5);
+    ctx.fillRect(ox+6*S,oy+3*S,S,S*0.5); ctx.fillRect(ox+2*S,oy+3*S,S,S*0.5); ctx.fillRect(ox+10*S,oy+3*S,S,S*0.5);
+  } else if(acc==='hat'){
+    ctx.fillStyle='#2c3e50';
+    ctx.fillRect(ox+2*S,oy,8*S,S); ctx.fillRect(ox+3*S,oy-S,6*S,S*2);
+  } else if(acc==='headband'){
+    ctx.fillStyle='#e74c3c'; ctx.fillRect(ox+2*S,oy+2*S,8*S,S);
+  } else if(acc==='halo'){
+    ctx.save(); ctx.strokeStyle='rgba(255,220,0,0.9)'; ctx.lineWidth=S*0.6;
+    ctx.beginPath(); ctx.ellipse(ox+6*S,oy,3.5*S,S*0.7,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
+  } else if(acc==='horns'){
+    ctx.fillStyle='#c0392b';
+    ctx.fillRect(ox+3*S,oy-S*2,S,S*2); ctx.fillRect(ox+8*S,oy-S*2,S,S*2);
+    ctx.fillRect(ox+3*S,oy-S*2,S*2,S); ctx.fillRect(ox+7*S,oy-S*2,S*2,S);
+  } else if(acc==='cap'){
+    ctx.fillStyle=tc;
+    ctx.fillRect(ox+2*S,oy+S,8*S,S); ctx.fillRect(ox+3*S,oy-S,5*S,S*2);
+    ctx.fillRect(ox+8*S,oy+S,3*S,S*0.5);
+  }
+  ctx.restore();
 }
 
 function renderAvatarPreview(){
@@ -1439,32 +1391,29 @@ function renderAvatarPreview(){
 }
 
 function buildAvatarUI(){
-  // Skin swatches
   const skinsEl=document.getElementById('ab-skins');
   if(skinsEl){
     skinsEl.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
     skinsEl.innerHTML='';
-    SKIN_COLORS.forEach((c,i)=>{
+    SKIN_COLORS.forEach((col,i)=>{
       const d=document.createElement('div');
       d.className='ab-swatch'+(i===AV.skin?' sel':'');
-      d.style.background=c; d.title='Skin '+i;
+      d.style.background=col; d.title='Skin '+i;
       d.onclick=()=>{ AV.skin=i; skinsEl.querySelectorAll('.ab-swatch').forEach((s,j)=>s.classList.toggle('sel',j===i)); renderAvatarPreview(); };
       skinsEl.appendChild(d);
     });
   }
-  // Hair swatches
   const hairEl=document.getElementById('ab-hairs');
   if(hairEl){
     hairEl.innerHTML='';
-    HAIR_COLORS.forEach((c,i)=>{
+    HAIR_COLORS.forEach((col,i)=>{
       const d=document.createElement('div');
       d.className='ab-swatch'+(i===AV.hair?' sel':'');
-      d.style.background=c; d.title='Hair '+i;
+      d.style.background=col; d.title='Hair '+i;
       d.onclick=()=>{ AV.hair=i; hairEl.querySelectorAll('.ab-swatch').forEach((s,j)=>s.classList.toggle('sel',j===i)); renderAvatarPreview(); };
       hairEl.appendChild(d);
     });
   }
-  // Eye styles
   const eyeEl=document.getElementById('ab-eyes');
   const EYE_LABELS=['😐','😄','😎','😴','⭐'];
   if(eyeEl){
@@ -1477,7 +1426,6 @@ function buildAvatarUI(){
       eyeEl.appendChild(d);
     });
   }
-  // Accessories
   const accEl=document.getElementById('ab-accessories');
   if(accEl){
     accEl.innerHTML='';
@@ -1500,7 +1448,6 @@ function randomizeAvatar(){
   buildAvatarUI();
 }
 
-// Update avatar builder preview when team changes
 function updateAvatarTeamTag(){
   const tag=document.getElementById('ab-team-tag');
   if(!tag) return;
@@ -1514,14 +1461,12 @@ function updateAvatarNameTag(){
   if(tag) tag.textContent=raw||(joinTeamChoice==='blue'?'BLUE PLAYER':'RED PLAYER');
 }
 
-// Draw a player avatar on a new canvas element for lineup
 function makeLineupCanvas(av, teamColor, scale=3){
   const canvas=document.createElement('canvas');
   canvas.width=12*scale; canvas.height=16*scale;
   canvas.style.width=(12*scale)+'px'; canvas.style.height=(16*scale)+'px';
   canvas.style.imageRendering='pixelated';
-  const ctx=canvas.getContext('2d');
-  drawPixelChar(ctx,av,teamColor,scale);
+  drawPixelChar(canvas.getContext('2d'),av,teamColor,scale);
   return canvas;
 }
 
@@ -1597,8 +1542,9 @@ document.getElementById('team-opt-red').addEventListener('click',()=>{
 document.getElementById('inp-join-name')?.addEventListener('input', e=>{
   updateAvatarNameTag();
   const hasName = e.target.value.trim().length > 0;
+  const code = document.getElementById('code-input')?.value||'';
   const joinBtn = document.getElementById('btn-join');
-  if(joinBtn) joinBtn.disabled = !hasName;
+  if(joinBtn) joinBtn.disabled = !(hasName && code.length===4);
   if(hasName){
     e.target.style.borderColor='';
     e.target.style.boxShadow='';
@@ -3293,7 +3239,7 @@ function initMuteButton(){
   const btn=document.createElement('button');
   btn.id='sfx-mute-btn';
   btn.title='Toggle sound';
-  btn.style.cssText='position:fixed;bottom:16px;right:16px;z-index:999;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);border-radius:50%;width:40px;height:40px;font-size:18px;cursor:pointer;backdrop-filter:blur(8px);transition:all .15s;';
+  btn.style.cssText='position:fixed;bottom:16px;right:16px;z-index:999;background:rgba(255,255,255,0.15);border:2px solid rgba(255,255,255,0.3);border-radius:50%;cursor:pointer;backdrop-filter:blur(8px);transition:all .15s;display:flex;align-items:center;justify-content:center;';
   btn.textContent=sfxMuted?'🔇':'🔊';
   btn.onclick=()=>{
     sfxMuted=!sfxMuted;
@@ -3330,159 +3276,388 @@ function maybeSfxTick(remaining){
 }
 
 // ══════════════════════════════════════════════
-//  LOBBY MUSIC ENGINE
+//  LOBBY MUSIC ENGINE  v2 — evolving, repeatable
+//  Structure: Intro(8) → A(16) → B(16) → A2(16) → Bridge(8) → loop
+//  Key: A minor pentatonic, BPM 118, 4/4
 // ══════════════════════════════════════════════
-let _lobbyNodes = null;   // holds all active lobby audio nodes
+let _lobbyNodes = [];
 let _lobbyPlaying = false;
-let _lobbyTimeout = null;
+let _lobbyTimeouts = [];
+
+function _lClear(){
+  _lobbyTimeouts.forEach(t=>clearTimeout(t));
+  _lobbyTimeouts = [];
+}
+function _lSchedule(fn, ms){
+  const t = setTimeout(fn, ms);
+  _lobbyTimeouts.push(t);
+  return t;
+}
 
 function startLobbyMusic(){
   if(sfxMuted || _lobbyPlaying) return;
+  _lobbyPlaying = true;
+  _lobbyNodes = [];
+  _lobbyTimeouts = [];
+
   try{
     const ac = getAC();
-    _lobbyPlaying = true;
-    _lobbyNodes = [];
+    const BPM = 118;
+    const B  = 60/BPM;          // 1 beat  ≈ 0.508s
+    const S  = B/2;              // 8th note
+    const Q  = B*4;              // 1 bar
 
-    // Master gain (for fade in/out)
+    // ── Master output chain ──────────────────────────────
     const master = ac.createGain();
     master.gain.setValueAtTime(0, ac.currentTime);
-    master.gain.linearRampToValueAtTime(0.22, ac.currentTime + 1.2);
-    master.connect(ac.destination);
-    _lobbyNodes.push(master);
+    master.gain.linearRampToValueAtTime(0.26, ac.currentTime + 1.5);
+    // Soft compressor to glue everything together
+    const comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -18; comp.knee.value = 10;
+    comp.ratio.value = 4; comp.attack.value = 0.005; comp.release.value = 0.15;
+    master.connect(comp); comp.connect(ac.destination);
+    _lobbyNodes.push(master, comp);
 
-    // === BASS PULSE ===
-    // Low sine that pulses rhythmically via LFO
-    const bass = ac.createOscillator();
-    bass.type = 'sine';
-    bass.frequency.setValueAtTime(55, ac.currentTime);
-    const bassGain = ac.createGain();
-    bassGain.gain.setValueAtTime(0.5, ac.currentTime);
-    bass.connect(bassGain); bassGain.connect(master);
-    bass.start();
-    _lobbyNodes.push(bass, bassGain);
+    // ── Chord progressions (A-minor feel, in Hz pairs per voice) ──
+    // Each entry: [bass, mid, high] root frequencies
+    // Prog A:  Am  F  C  G   (4 bars each → 16-bar section)
+    // Prog B:  Dm  Am F  E7  (more tension, for the B section)
+    const PROG_A = [
+      {bass:55,  pad:[220, 261, 329]},  // Am
+      {bass:87,  pad:[175, 220, 261]},  // F
+      {bass:65,  pad:[196, 261, 329]},  // C
+      {bass:98,  pad:[196, 246, 294]},  // G
+    ];
+    const PROG_B = [
+      {bass:73,  pad:[220, 261, 349]},  // Dm
+      {bass:55,  pad:[220, 277, 330]},  // Am
+      {bass:87,  pad:[175, 220, 261]},  // F
+      {bass:82,  pad:[165, 207, 247]},  // E
+    ];
 
-    // Pulse LFO for bass (creates rhythmic throb ~120bpm)
-    const bassLFO = ac.createOscillator();
-    bassLFO.type = 'sine';
-    bassLFO.frequency.setValueAtTime(2.0, ac.currentTime); // 2 Hz = 120bpm
-    const bassLFOGain = ac.createGain();
-    bassLFOGain.gain.setValueAtTime(0.45, ac.currentTime);
-    bassLFO.connect(bassLFOGain); bassLFOGain.connect(bassGain.gain);
-    bassLFO.start();
-    _lobbyNodes.push(bassLFO, bassLFOGain);
+    // A-minor pentatonic: A C D E G  (several octaves for arp)
+    const PENTA_LOW  = [220,261,293,330,392, 440,523,587,659,784];
+    const PENTA_HIGH = [440,523,587,659,784,880,1047,1174,1318,1568];
 
-    // === CHORD PAD ===
-    // Three detuned oscillators for a warm pad chord (C minor feel)
-    const padFreqs = [131, 156, 196, 233]; // C3 Eb3 G3 Bb3
-    padFreqs.forEach((f, i) => {
-      const osc = ac.createOscillator();
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(f, ac.currentTime);
-      osc.detune.setValueAtTime((i % 2 === 0 ? -8 : 8), ac.currentTime);
-      const g = ac.createGain();
-      g.gain.setValueAtTime(0.04, ac.currentTime);
-      // Low-pass filter to smooth the sawtooth
-      const filt = ac.createBiquadFilter();
-      filt.type = 'lowpass';
-      filt.frequency.setValueAtTime(600 + i*80, ac.currentTime);
-      filt.Q.setValueAtTime(1.5, ac.currentTime);
-      osc.connect(filt); filt.connect(g); g.connect(master);
-      osc.start();
-      _lobbyNodes.push(osc, g, filt);
+    // Current section tracker
+    let _section = 0; // 0=intro 1=A 2=B 3=A2 4=bridge → loops
+    let _chord   = 0;
+    let _arpIdx  = 0;
+    let _hatIdx  = 0;
+    let _intensity = 0; // 0-3, builds over time
+
+    // ── Reverb impulse (simple convolver) ─────────────────
+    function makeReverb(dur=1.2, decay=2.0){
+      const len = ac.sampleRate * dur;
+      const buf = ac.createBuffer(2, len, ac.sampleRate);
+      for(let ch=0; ch<2; ch++){
+        const d = buf.getChannelData(ch);
+        for(let i=0; i<len; i++) d[i] = (Math.random()*2-1) * Math.pow(1 - i/len, decay);
+      }
+      const cv = ac.createConvolver(); cv.buffer = buf;
+      const rvGain = ac.createGain(); rvGain.gain.value = 0.18;
+      master.connect(cv); cv.connect(rvGain); rvGain.connect(ac.destination);
+      _lobbyNodes.push(cv, rvGain);
+      return cv;
+    }
+    makeReverb(1.5, 2.5);
+
+    // ── Drone pad (sustained behind everything) ────────────
+    const droneFreqs = [55, 110, 165]; // A1 A2 E3
+    droneFreqs.forEach((f, i)=>{
+      const o = ac.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f;
+      o.detune.value = (i-1)*5;
+      const g = ac.createGain(); g.gain.value = 0.03 + i*0.01;
+      const lp = ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=300;
+      o.connect(lp); lp.connect(g); g.connect(master);
+      o.start();
+      _lobbyNodes.push(o, g, lp);
     });
 
-    // Filter sweep LFO (slowly opens and closes the filter for movement)
-    const sweepLFO = ac.createOscillator();
-    sweepLFO.type = 'sine';
-    sweepLFO.frequency.setValueAtTime(0.12, ac.currentTime); // very slow sweep
-    const sweepGain = ac.createGain();
-    sweepGain.gain.setValueAtTime(300, ac.currentTime);
-    sweepLFO.connect(sweepGain);
-    sweepLFO.start();
-    _lobbyNodes.push(sweepLFO, sweepGain);
+    // ── Chord pad scheduler ───────────────────────────────
+    let _padOscs = [];
+    function playChord(prog, chordIdx, when, dur){
+      const ch = prog[chordIdx % prog.length];
+      // Kill last pad oscs
+      _padOscs.forEach(o=>{ try{ o.stop(when); }catch(e){} });
+      _padOscs = [];
+      // Bass note
+      const bass = ac.createOscillator();
+      bass.type = 'triangle';
+      bass.frequency.value = ch.bass;
+      const bG = ac.createGain();
+      bG.gain.setValueAtTime(0, when);
+      bG.gain.linearRampToValueAtTime(0.22, when+0.12);
+      bG.gain.setValueAtTime(0.22, when+dur-0.15);
+      bG.gain.linearRampToValueAtTime(0, when+dur);
+      const bFlt = ac.createBiquadFilter(); bFlt.type='lowpass'; bFlt.frequency.value=400;
+      bass.connect(bFlt); bFlt.connect(bG); bG.connect(master);
+      bass.start(when); bass.stop(when+dur+0.05);
+      _padOscs.push(bass);
+      // Pad voices (3 harmonics with detune for width)
+      ch.pad.forEach((f,i)=>{
+        [-6, 0, 6].forEach(det=>{
+          const o = ac.createOscillator();
+          o.type = 'sawtooth';
+          o.frequency.value = f;
+          o.detune.value = det;
+          const g = ac.createGain();
+          g.gain.setValueAtTime(0, when);
+          g.gain.linearRampToValueAtTime(0.013, when+0.25);
+          g.gain.setValueAtTime(0.013, when+dur-0.2);
+          g.gain.linearRampToValueAtTime(0, when+dur);
+          const flt = ac.createBiquadFilter(); flt.type='lowpass';
+          flt.frequency.setValueAtTime(400+i*120, when);
+          flt.frequency.linearRampToValueAtTime(800+i*180, when+dur*0.5);
+          flt.frequency.linearRampToValueAtTime(500+i*100, when+dur);
+          flt.Q.value = 1.2;
+          o.connect(flt); flt.connect(g); g.connect(master);
+          o.start(when); o.stop(when+dur+0.05);
+          _padOscs.push(o);
+        });
+      });
+    }
 
-    // === ARPEGGIO ===
-    // Bright plucky arpeggio pattern on top
-    const arpNotes = [523, 659, 784, 1047, 784, 659, 523, 392]; // C major arp
-    const arpBpm = 120;
-    const arpStep = 60 / arpBpm / 2; // 8th notes
-    let arpIdx = 0;
+    // ── Arpeggio ──────────────────────────────────────────
+    // Pattern varies by section: straight in A, syncopated in B
+    const ARP_PATS = {
+      intro: [0,2,4,5],
+      A:     [0,2,4,7,5,4,2,0],
+      B:     [0,4,2,7,5,9,7,4],
+      A2:    [0,2,4,7,9,7,5,4,2,0],
+      bridge:[0,5,4,2],
+    };
 
-    function scheduleArp(){
-      if(!_lobbyPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const freq = arpNotes[arpIdx % arpNotes.length];
-        arpIdx++;
-
+    function scheduleArp(section, notes, step, startTime, bars){
+      const pat = ARP_PATS[section] || ARP_PATS.A;
+      let idx = 0;
+      const end = startTime + bars * Q;
+      function tick(t){
+        if(!_lobbyPlaying || t >= end) return;
+        const ni = pat[idx % pat.length]; idx++;
+        const pool = _intensity >= 2 ? PENTA_HIGH : PENTA_LOW;
+        const freq = pool[ni % pool.length];
         const o = ac.createOscillator();
-        o.type = 'triangle';
-        o.frequency.setValueAtTime(freq, now);
+        o.type = section==='B' ? 'square' : 'triangle';
+        o.frequency.value = freq;
         const g = ac.createGain();
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(0.07, now + 0.015);
-        g.gain.exponentialRampToValueAtTime(0.001, now + arpStep * 0.7);
-        const flt = ac.createBiquadFilter();
-        flt.type = 'bandpass';
-        flt.frequency.setValueAtTime(freq, now);
-        flt.Q.setValueAtTime(2, now);
+        const vol = 0.04 + (_intensity * 0.012);
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(vol, t+0.012);
+        g.gain.exponentialRampToValueAtTime(0.001, t+step*0.75);
+        const flt = ac.createBiquadFilter(); flt.type='bandpass';
+        flt.frequency.value = freq; flt.Q.value = 2.5;
         o.connect(flt); flt.connect(g); g.connect(master);
-        o.start(now); o.stop(now + arpStep);
-
-        _lobbyTimeout = setTimeout(scheduleArp, arpStep * 1000);
-      }catch(e){ _lobbyPlaying = false; }
+        o.start(t); o.stop(t+step);
+        // Occasional octave-up harmony (every 4th note in A2)
+        if(section==='A2' && idx%4===0){
+          const o2 = ac.createOscillator();
+          o2.type = 'sine'; o2.frequency.value = freq*2;
+          const g2 = ac.createGain();
+          g2.gain.setValueAtTime(0,t); g2.gain.linearRampToValueAtTime(vol*0.4,t+0.01);
+          g2.gain.exponentialRampToValueAtTime(0.001,t+step*0.5);
+          o2.connect(g2); g2.connect(master);
+          o2.start(t); o2.stop(t+step);
+        }
+        _lSchedule(()=>tick(ac.currentTime), (t - ac.currentTime + step)*1000 - 5);
+      }
+      _lSchedule(()=>tick(ac.currentTime), (startTime - ac.currentTime)*1000);
     }
-    scheduleArp();
 
-    // === HI-HAT RHYTHM ===
-    // Percussive noise hits on beat
-    function scheduleHat(){
+    // ── Percussion ────────────────────────────────────────
+    function makeHat(when, vol=0.04, dur=0.04, hpFreq=8000){
+      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate*dur), ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+      const src = ac.createBufferSource(); src.buffer=buf;
+      const flt = ac.createBiquadFilter(); flt.type='highpass'; flt.frequency.value=hpFreq;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(vol, when);
+      g.gain.exponentialRampToValueAtTime(0.001, when+dur);
+      src.connect(flt); flt.connect(g); g.connect(master);
+      src.start(when); return src;
+    }
+    function makeKick(when, vol=0.4){
+      const o = ac.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(120, when);
+      o.frequency.exponentialRampToValueAtTime(40, when+0.12);
+      const g = ac.createGain();
+      g.gain.setValueAtTime(vol, when);
+      g.gain.exponentialRampToValueAtTime(0.001, when+0.18);
+      o.connect(g); g.connect(master);
+      o.start(when); o.stop(when+0.22);
+    }
+    function makeSnare(when, vol=0.12){
+      const buf = ac.createBuffer(1, Math.ceil(ac.sampleRate*0.12), ac.sampleRate);
+      const d = buf.getChannelData(0);
+      for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1);
+      const src = ac.createBufferSource(); src.buffer=buf;
+      const flt = ac.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=2200; flt.Q.value=0.7;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(vol, when);
+      g.gain.exponentialRampToValueAtTime(0.001, when+0.12);
+      src.connect(flt); flt.connect(g); g.connect(master);
+      src.start(when);
+    }
+    function makeClave(when, vol=0.06){
+      // Wood block click — high sine ping
+      const o = ac.createOscillator(); o.type='sine'; o.frequency.value=1800;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(vol, when); g.gain.exponentialRampToValueAtTime(0.001, when+0.04);
+      o.connect(g); g.connect(master); o.start(when); o.stop(when+0.05);
+    }
+
+    // Schedule a full bar of percussion for a given pattern
+    // pat: array of {beat (0-3.5), type:'kick'|'snare'|'hat'|'ohat'|'clave', vol?}
+    function schedulePercBar(startTime, pat, section){
+      pat.forEach(hit=>{
+        const when = startTime + hit.beat * B;
+        const ms = (when - ac.currentTime)*1000;
+        if(ms < 0) return;
+        _lSchedule(()=>{
+          if(!_lobbyPlaying) return;
+          if(hit.type==='kick')  makeKick(ac.currentTime, hit.vol||0.38);
+          if(hit.type==='snare') makeSnare(ac.currentTime, hit.vol||(0.10+_intensity*0.02));
+          if(hit.type==='hat')   makeHat(ac.currentTime, hit.vol||0.04, 0.04);
+          if(hit.type==='ohat')  makeHat(ac.currentTime, hit.vol||0.06, 0.09, 7000);
+          if(hit.type==='clave') makeClave(ac.currentTime, hit.vol||0.06);
+        }, ms);
+      });
+    }
+
+    // Percussion patterns for each section
+    const PERC_INTRO = [
+      {beat:0,   type:'kick'},
+      {beat:1,   type:'hat'},
+      {beat:2,   type:'kick'},
+      {beat:3,   type:'hat'},
+    ];
+    const PERC_A = [
+      {beat:0,   type:'kick'},
+      {beat:0.5, type:'hat'},
+      {beat:1,   type:'hat'},
+      {beat:2,   type:'kick'}, {beat:2,type:'snare'},
+      {beat:2.5, type:'hat'},
+      {beat:3,   type:'hat'},
+      {beat:3.5, type:'kick'},
+    ];
+    const PERC_B = [
+      {beat:0,   type:'kick'},
+      {beat:0.5, type:'clave'},
+      {beat:1,   type:'snare'},
+      {beat:1.5, type:'hat'},
+      {beat:2,   type:'kick'},
+      {beat:2.5, type:'hat'},
+      {beat:3,   type:'snare'},
+      {beat:3.5, type:'clave'},
+    ];
+    const PERC_BRIDGE = [
+      {beat:0,   type:'kick',  vol:0.5},
+      {beat:1,   type:'ohat'},
+      {beat:2,   type:'kick',  vol:0.5},
+      {beat:2.5, type:'snare', vol:0.18},
+      {beat:3,   type:'ohat'},
+      {beat:3.5, type:'snare', vol:0.08},
+    ];
+
+    // ── Melody (bridge only — call-and-response motif) ─────
+    const BRIDGE_MOTIF = [440,0,523,440,392,0,330,0]; // A C A G E
+    function scheduleBridgeMelody(startTime){
+      BRIDGE_MOTIF.forEach((freq,i)=>{
+        if(freq===0) return;
+        const when = startTime + i*S;
+        const ms = (when - ac.currentTime)*1000;
+        _lSchedule(()=>{
+          if(!_lobbyPlaying) return;
+          const now = ac.currentTime;
+          const o = ac.createOscillator(); o.type='triangle'; o.frequency.value=freq;
+          const g = ac.createGain();
+          g.gain.setValueAtTime(0,now);
+          g.gain.linearRampToValueAtTime(0.10,now+0.015);
+          g.gain.exponentialRampToValueAtTime(0.001,now+S*0.8);
+          const flt = ac.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=freq*1.2; flt.Q.value=3;
+          o.connect(flt); flt.connect(g); g.connect(master);
+          o.start(now); o.stop(now+S);
+        }, ms);
+      });
+    }
+
+    // ── Section sequencer ─────────────────────────────────
+    // Sections: intro(4bars) A(16bars) B(8bars) A2(16bars) bridge(4bars) → repeat from A
+    const SECTIONS = [
+      {name:'intro',  bars:4,  prog:PROG_A, arpStep:S,   perc:PERC_INTRO,  chordPer:4},
+      {name:'A',      bars:16, prog:PROG_A, arpStep:S,   perc:PERC_A,      chordPer:4},
+      {name:'B',      bars:8,  prog:PROG_B, arpStep:S*0.75, perc:PERC_B,   chordPer:2},
+      {name:'A2',     bars:16, prog:PROG_A, arpStep:S,   perc:PERC_A,      chordPer:4},
+      {name:'bridge', bars:4,  prog:PROG_B, arpStep:S*2, perc:PERC_BRIDGE, chordPer:2},
+    ];
+    let _secIdx = 0;
+
+    function runSection(){
       if(!_lobbyPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const buf = ac.createBuffer(1, ac.sampleRate * 0.04, ac.sampleRate);
-        const d = buf.getChannelData(0);
-        for(let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
-        const src = ac.createBufferSource(); src.buffer = buf;
-        const flt = ac.createBiquadFilter(); flt.type = 'highpass'; flt.frequency.value = 8000;
-        const g = ac.createGain();
-        g.gain.setValueAtTime(0.04, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-        src.connect(flt); flt.connect(g); g.connect(master);
-        src.start(now);
-        setTimeout(scheduleHat, 500); // quarter-note hi-hat
-      }catch(e){ _lobbyPlaying = false; }
-    }
-    setTimeout(scheduleHat, 250); // offset hi-hat slightly
+      const sec = SECTIONS[_secIdx % SECTIONS.length];
+      _secIdx++;
+      // After intro, remove it from loop
+      const now = ac.currentTime;
+      const totalMs = sec.bars * Q * 1000;
 
-  }catch(e){ _lobbyPlaying = false; }
+      // Intensity ramps up
+      _intensity = Math.min(3, Math.floor(_secIdx / 2));
+
+      // Schedule chord changes within section
+      for(let bar=0; bar<sec.bars; bar++){
+        const chordBar = Math.floor(bar / sec.chordPer);
+        const prog = sec.prog;
+        const chordIdx = chordBar % prog.length;
+        if(bar % sec.chordPer === 0){
+          const when = now + bar * Q;
+          const dur = sec.chordPer * Q;
+          const _b = bar, _ci = chordIdx, _p = prog, _d = dur;
+          _lSchedule(()=>{ if(_lobbyPlaying) playChord(_p, _ci, ac.currentTime, _d); },
+            (when - now)*1000);
+        }
+        // Percussion
+        const pWhen = now + bar * Q;
+        const ms = (pWhen - now)*1000;
+        _lSchedule(()=>{ if(_lobbyPlaying) schedulePercBar(ac.currentTime, sec.perc, sec.name); }, ms);
+        // Bridge melody on first 2 bars only
+        if(sec.name==='bridge' && bar < 2){
+          const mWhen = now + bar * Q;
+          _lSchedule(()=>{ if(_lobbyPlaying) scheduleBridgeMelody(ac.currentTime); }, (mWhen-now)*1000);
+        }
+      }
+      // Arpeggio over whole section
+      scheduleArp(sec.name, null, sec.arpStep, now, sec.bars);
+
+      // Queue next section (skip intro on subsequent loops)
+      _lSchedule(()=>{
+        if(_secIdx >= SECTIONS.length) _secIdx = 1; // skip intro on loop
+        runSection();
+      }, totalMs - 80); // -80ms for seamless crossfade
+    }
+
+    runSection();
+
+  }catch(e){ console.warn('LobbyMusic error:',e); _lobbyPlaying=false; }
 }
 
-function stopLobbyMusic(fadeDuration = 0.8){
+function stopLobbyMusic(fadeDuration=0.9){
   if(!_lobbyPlaying) return;
   _lobbyPlaying = false;
-  clearTimeout(_lobbyTimeout);
-  if(_lobbyNodes){
-    try{
-      const ac = getAC();
-      const now = ac.currentTime;
-      // Fade master gain to 0
-      _lobbyNodes.forEach(n=>{
-        if(n && n.gain && typeof n.gain.cancelScheduledValues === 'function'){
-          try{
-            n.gain.cancelScheduledValues(now);
-            n.gain.setValueAtTime(n.gain.value, now);
-            n.gain.linearRampToValueAtTime(0, now + fadeDuration);
-          }catch(e){}
-        }
-        // Stop oscillators after fade
-        if(n && typeof n.stop === 'function'){
-          try{ n.stop(now + fadeDuration + 0.05); }catch(e){}
-        }
-      });
-    }catch(e){}
-    setTimeout(()=>{ _lobbyNodes = null; }, (fadeDuration + 0.1) * 1000);
-  }
+  _lClear();
+  try{
+    const ac = getAC();
+    const now = ac.currentTime;
+    _lobbyNodes.forEach(n=>{
+      if(n && n.gain && typeof n.gain.cancelScheduledValues==='function'){
+        try{ n.gain.cancelScheduledValues(now); n.gain.setValueAtTime(n.gain.value,now); n.gain.linearRampToValueAtTime(0,now+fadeDuration); }catch(e){}
+      }
+      if(n && typeof n.stop==='function'){ try{ n.stop(now+fadeDuration+0.05); }catch(e){} }
+    });
+  }catch(e){}
+  setTimeout(()=>{ _lobbyNodes=[]; }, (fadeDuration+0.15)*1000);
 }
 
 // Start lobby music on first user interaction (browsers require a gesture before AudioContext)
@@ -3503,213 +3678,372 @@ function _tryStartLobbyMusic(){
 });
 
 // ══════════════════════════════════════════════
-//  MATCH MUSIC ENGINE (in-game — energetic)
+//  MATCH MUSIC ENGINE  v2 — driving, evolving
+//  Structure: 8-bar phrases, modulates key after 32 bars
+//  BPM: 138, 4/4, key: D minor → F major → D minor
 // ══════════════════════════════════════════════
-let _matchNodes = null;
+let _matchNodes = [];
 let _matchPlaying = false;
 let _matchTimeouts = [];
 
-function startMatchMusic(){
-  if(sfxMuted || _matchPlaying) return;
-  try{
-    const ac = getAC();
-    _matchPlaying = true;
-    _matchNodes = [];
-    _matchTimeouts = [];
-
-    // Master gain — fade in
-    const master = ac.createGain();
-    master.gain.setValueAtTime(0, ac.currentTime);
-    master.gain.linearRampToValueAtTime(0.18, ac.currentTime + 1.0);
-    master.connect(ac.destination);
-    _matchNodes.push(master);
-
-    // === DRIVING BASS LINE ===
-    // Faster bass at 140bpm with walking pattern
-    const bassNotes = [55, 55, 65, 73, 55, 55, 49, 55]; // walking bass
-    const bpm = 140;
-    const beat = 60 / bpm;
-    let bIdx = 0;
-
-    function scheduleBass(){
-      if(!_matchPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const freq = bassNotes[bIdx % bassNotes.length];
-        bIdx++;
-        const o = ac.createOscillator();
-        o.type = 'square';
-        o.frequency.setValueAtTime(freq, now);
-        const g = ac.createGain();
-        g.gain.setValueAtTime(0, now);
-        g.gain.linearRampToValueAtTime(0.3, now + 0.01);
-        g.gain.exponentialRampToValueAtTime(0.001, now + beat * 0.8);
-        const flt = ac.createBiquadFilter();
-        flt.type = 'lowpass'; flt.frequency.value = 300; flt.Q.value = 2;
-        o.connect(flt); flt.connect(g); g.connect(master);
-        o.start(now); o.stop(now + beat);
-        const t = setTimeout(scheduleBass, beat * 1000);
-        _matchTimeouts.push(t);
-      }catch(e){ _matchPlaying = false; }
-    }
-    scheduleBass();
-
-    // === CHORD STABS ===
-    // Short punchy chord hits on the 1 and 3 of every bar
-    const chordFreqs = [
-      [196, 247, 294], // G4 B4 D5
-      [220, 277, 330], // A4 C#5 E5
-      [175, 220, 262], // F4 A4 C5
-      [196, 247, 294], // G4 B4 D5
-    ];
-    let cIdx = 0;
-    const barLen = beat * 4;
-
-    function scheduleChord(){
-      if(!_matchPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const chord = chordFreqs[cIdx % chordFreqs.length];
-        cIdx++;
-        chord.forEach(freq => {
-          const o = ac.createOscillator();
-          o.type = 'sawtooth';
-          o.frequency.setValueAtTime(freq, now);
-          const g = ac.createGain();
-          g.gain.setValueAtTime(0, now);
-          g.gain.linearRampToValueAtTime(0.06, now + 0.01);
-          g.gain.exponentialRampToValueAtTime(0.001, now + beat * 1.5);
-          const flt = ac.createBiquadFilter();
-          flt.type = 'lowpass'; flt.frequency.value = 1200; flt.Q.value = 1;
-          o.connect(flt); flt.connect(g); g.connect(master);
-          o.start(now); o.stop(now + beat * 2);
-        });
-        const t = setTimeout(scheduleChord, barLen * 1000);
-        _matchTimeouts.push(t);
-      }catch(e){ _matchPlaying = false; }
-    }
-    scheduleChord();
-
-    // === MELODY / LEAD ===
-    // Upbeat lead melody line
-    const melodyNotes = [784,784,880,784,659,698,784,0,784,784,880,1047,988,880,784,0];
-    const mStep = beat / 2; // 8th notes
-    let mIdx = 0;
-
-    function scheduleMelody(){
-      if(!_matchPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const freq = melodyNotes[mIdx % melodyNotes.length];
-        mIdx++;
-        if(freq > 0){
-          const o = ac.createOscillator();
-          o.type = 'triangle';
-          o.frequency.setValueAtTime(freq, now);
-          const g = ac.createGain();
-          g.gain.setValueAtTime(0, now);
-          g.gain.linearRampToValueAtTime(0.08, now + 0.01);
-          g.gain.exponentialRampToValueAtTime(0.001, now + mStep * 0.85);
-          const flt = ac.createBiquadFilter();
-          flt.type = 'bandpass'; flt.frequency.value = freq; flt.Q.value = 3;
-          o.connect(flt); flt.connect(g); g.connect(master);
-          o.start(now); o.stop(now + mStep);
-        }
-        const t = setTimeout(scheduleMelody, mStep * 1000);
-        _matchTimeouts.push(t);
-      }catch(e){ _matchPlaying = false; }
-    }
-    scheduleMelody();
-
-    // === KICK DRUM ===
-    function scheduleKick(){
-      if(!_matchPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const o = ac.createOscillator();
-        o.type = 'sine';
-        o.frequency.setValueAtTime(150, now);
-        o.frequency.exponentialRampToValueAtTime(50, now + 0.1);
-        const g = ac.createGain();
-        g.gain.setValueAtTime(0.5, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-        o.connect(g); g.connect(master);
-        o.start(now); o.stop(now + 0.2);
-        const t = setTimeout(scheduleKick, beat * 2 * 1000); // on beats 1 and 3
-        _matchTimeouts.push(t);
-      }catch(e){ _matchPlaying = false; }
-    }
-    scheduleKick();
-
-    // === SNARE ===
-    function scheduleSnare(){
-      if(!_matchPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const buf = ac.createBuffer(1, ac.sampleRate * 0.12, ac.sampleRate);
-        const d = buf.getChannelData(0);
-        for(let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
-        const src = ac.createBufferSource(); src.buffer = buf;
-        const flt = ac.createBiquadFilter(); flt.type = 'bandpass'; flt.frequency.value = 2500; flt.Q.value = 0.5;
-        const g = ac.createGain();
-        g.gain.setValueAtTime(0.15, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-        src.connect(flt); flt.connect(g); g.connect(master);
-        src.start(now);
-        const t = setTimeout(scheduleSnare, beat * 2 * 1000); // on beats 2 and 4
-        _matchTimeouts.push(t);
-      }catch(e){ _matchPlaying = false; }
-    }
-    setTimeout(scheduleSnare, beat * 1000); // offset by 1 beat = beats 2 & 4
-
-    // === OPEN HI-HAT ===
-    function scheduleHH(){
-      if(!_matchPlaying) return;
-      try{
-        const now = ac.currentTime;
-        const buf = ac.createBuffer(1, ac.sampleRate * 0.05, ac.sampleRate);
-        const d = buf.getChannelData(0);
-        for(let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
-        const src = ac.createBufferSource(); src.buffer = buf;
-        const flt = ac.createBiquadFilter(); flt.type = 'highpass'; flt.frequency.value = 9000;
-        const g = ac.createGain();
-        g.gain.setValueAtTime(0.05, now);
-        g.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
-        src.connect(flt); flt.connect(g); g.connect(master);
-        src.start(now);
-        const t = setTimeout(scheduleHH, beat * 500); // 8th note hi-hat
-        _matchTimeouts.push(t);
-      }catch(e){ _matchPlaying = false; }
-    }
-    scheduleHH();
-
-  }catch(e){ _matchPlaying = false; }
+function _mClear(){
+  _matchTimeouts.forEach(t=>clearTimeout(t));
+  _matchTimeouts=[];
+}
+function _mSchedule(fn, ms){
+  const t=setTimeout(fn,ms); _matchTimeouts.push(t); return t;
 }
 
-function stopMatchMusic(fadeDuration = 0.8){
-  if(!_matchPlaying) return;
-  _matchPlaying = false;
-  _matchTimeouts.forEach(t => clearTimeout(t));
-  _matchTimeouts = [];
-  if(_matchNodes){
-    try{
-      const ac = getAC();
-      const now = ac.currentTime;
-      _matchNodes.forEach(n=>{
-        if(n && n.gain && typeof n.gain.cancelScheduledValues === 'function'){
-          try{
-            n.gain.cancelScheduledValues(now);
-            n.gain.setValueAtTime(n.gain.value, now);
-            n.gain.linearRampToValueAtTime(0, now + fadeDuration);
-          }catch(e){}
-        }
-        if(n && typeof n.stop === 'function'){
-          try{ n.stop(now + fadeDuration + 0.05); }catch(e){}
-        }
+function startMatchMusic(){
+  if(sfxMuted || _matchPlaying) return;
+  _matchPlaying=true;
+  _matchNodes=[];
+  _matchTimeouts=[];
+
+  try{
+    const ac=getAC();
+    const BPM=138;
+    const B=60/BPM;
+    const S=B/2;   // 8th note
+    const T=B/3;   // triplet 8th (for fills)
+    const Q=B*4;   // 1 bar
+
+    // ── Master chain ──────────────────────────────────────
+    const master=ac.createGain();
+    master.gain.setValueAtTime(0,ac.currentTime);
+    master.gain.linearRampToValueAtTime(0.22,ac.currentTime+0.8);
+    const comp=ac.createDynamicsCompressor();
+    comp.threshold.value=-14; comp.knee.value=8;
+    comp.ratio.value=5; comp.attack.value=0.003; comp.release.value=0.1;
+    master.connect(comp); comp.connect(ac.destination);
+    _matchNodes.push(master,comp);
+
+    // Short reverb send for snare air
+    const rvBuf=ac.createBuffer(2,Math.ceil(ac.sampleRate*0.6),ac.sampleRate);
+    for(let ch=0;ch<2;ch++){ const d=rvBuf.getChannelData(ch); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,3.5); }
+    const rv=ac.createConvolver(); rv.buffer=rvBuf;
+    const rvG=ac.createGain(); rvG.gain.value=0.10;
+    master.connect(rv); rv.connect(rvG); rvG.connect(ac.destination);
+    _matchNodes.push(rv,rvG);
+
+    // ── Key centres (modulate every 32 bars) ──────────────
+    // D minor → F → A minor → D minor
+    const KEYS = [
+      // [bassRoot, leadRoot, chordVoicings(3-4 bars rotation)]
+      {
+        root:73,  // D2
+        lead:[293,329,392,440,392,329,293,0, 349,392,440,523,440,392,349,0], // D-minor melodic
+        chords:[
+          [293,349,440],  // Dm
+          [261,329,392],  // C
+          [220,261,329],  // Am
+          [246,311,369],  // Bm7b5
+        ]
+      },
+      {
+        root:87,  // F2
+        lead:[349,392,440,523,440,392,349,0, 392,440,523,587,523,440,392,0],
+        chords:[
+          [349,440,523],  // F
+          [392,494,587],  // G7
+          [261,329,392],  // C
+          [293,369,440],  // Dm
+        ]
+      },
+      {
+        root:55,  // A1 (lower — extra energy)
+        lead:[440,523,587,659,587,523,440,0, 523,659,784,880,784,659,523,0],
+        chords:[
+          [220,277,330],  // Am
+          [246,311,369],  // Bm7b5
+          [261,329,392],  // C
+          [293,349,440],  // Dm
+        ]
+      }
+    ];
+
+    let _phrase=0;  // 8-bar phrase counter
+    let _keyIdx=0;  // key index
+
+    // ── Drum helpers ──────────────────────────────────────
+    function kick(when,vol=0.55){
+      const o=ac.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(160,when);
+      o.frequency.exponentialRampToValueAtTime(42,when+0.09);
+      const g=ac.createGain();
+      g.gain.setValueAtTime(vol,when);
+      g.gain.exponentialRampToValueAtTime(0.001,when+0.18);
+      o.connect(g); g.connect(master); o.start(when); o.stop(when+0.22);
+    }
+    function snare(when,vol=0.18){
+      // Noise body
+      const nb=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.13),ac.sampleRate);
+      const nd=nb.getChannelData(0); for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+      const ns=ac.createBufferSource(); ns.buffer=nb;
+      const nf=ac.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=2400; nf.Q.value=0.6;
+      const ng=ac.createGain();
+      ng.gain.setValueAtTime(vol,when); ng.gain.exponentialRampToValueAtTime(0.001,when+0.13);
+      ns.connect(nf); nf.connect(ng); ng.connect(master); ns.start(when);
+      // Tone snap
+      const o=ac.createOscillator(); o.type='triangle'; o.frequency.value=180;
+      const og=ac.createGain();
+      og.gain.setValueAtTime(vol*0.6,when); og.gain.exponentialRampToValueAtTime(0.001,when+0.06);
+      o.connect(og); og.connect(master); o.start(when); o.stop(when+0.07);
+    }
+    function hat(when,vol=0.05,dur=0.03,hp=9000){
+      const b=ac.createBuffer(1,Math.ceil(ac.sampleRate*dur),ac.sampleRate);
+      const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+      const src=ac.createBufferSource(); src.buffer=b;
+      const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp;
+      const g=ac.createGain();
+      g.gain.setValueAtTime(vol,when); g.gain.exponentialRampToValueAtTime(0.001,when+dur);
+      src.connect(f); f.connect(g); g.connect(master); src.start(when);
+    }
+    function clap(when,vol=0.12){
+      // Double-hit clap
+      [0,0.012].forEach(dt=>{
+        const b=ac.createBuffer(1,Math.ceil(ac.sampleRate*0.1),ac.sampleRate);
+        const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=Math.random()*2-1;
+        const src=ac.createBufferSource(); src.buffer=b;
+        const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1800; f.Q.value=0.5;
+        const g=ac.createGain();
+        g.gain.setValueAtTime(vol,when+dt); g.gain.exponentialRampToValueAtTime(0.001,when+dt+0.1);
+        src.connect(f); f.connect(g); g.connect(master); src.start(when+dt);
       });
-    }catch(e){}
-    setTimeout(()=>{ _matchNodes = null; }, (fadeDuration + 0.1) * 1000);
-  }
+    }
+
+    // ── Percussion patterns (all 4 beats, events are fractions of a beat) ──
+    // Each hit: {b: beat-fraction, type, vol?}
+    function DRUM_MAIN(when, bar, phrase){
+      const accents = phrase % 2 === 0; // accent bars on even phrases
+      // 4-on-floor kick
+      [0,1,2,3].forEach(b=>kick(when+b*B));
+      // Snare on 2 and 4
+      snare(when + 1*B); snare(when + 3*B);
+      // 8th-note hats with variation
+      for(let i=0;i<8;i++){
+        const t=when+i*S;
+        const isDown=(i%2===0);
+        hat(t, isDown?0.05:0.035, isDown?0.03:0.025);
+      }
+      // 16th-note ghost hits on specific patterns (bar-dependent)
+      if(bar%2===1){
+        hat(when+0.75*B, 0.03, 0.02); // ee of 1
+        hat(when+2.75*B, 0.03, 0.02); // ee of 3
+      }
+      // Every 4th bar: fill
+      if(bar%4===3){
+        // Snare fill in the last half-beat
+        [3.25,3.5,3.75].forEach(b=>snare(when+b*B, 0.10));
+      }
+      // Clap on 2 and 4 for accented phrases
+      if(accents){
+        clap(when+1*B, 0.08); clap(when+3*B, 0.08);
+      }
+    }
+
+    function DRUM_BUILD(when, bar){
+      // Denser pattern for phrase 7 (build before key change)
+      [0,0.5,1,1.5,2,2.5,3,3.5].forEach(b=>kick(when+b*B,0.4));
+      snare(when+B); snare(when+2*B); snare(when+3*B);
+      for(let i=0;i<16;i++) hat(when+i*B/4,0.04,0.015);
+    }
+
+    // ── Bass line ────────────────────────────────────────
+    // Syncopated walking bass — pattern repeats every 2 bars
+    // offsets in beats: on-beat + 8th note subdivisions
+    const BASS_PAT = [
+      {b:0,   len:0.75},
+      {b:1,   len:0.5},
+      {b:1.5, len:0.5},
+      {b:2,   len:0.75},
+      {b:3,   len:0.5},
+      {b:3.5, len:0.5},
+    ];
+    const BASS_PAT_B = [ // bar 2 of pair (walking up/down)
+      {b:0,   len:0.9, semi:0},
+      {b:1,   len:0.5, semi:2},
+      {b:1.5, len:0.5, semi:5},
+      {b:2,   len:0.9, semi:7},
+      {b:3,   len:0.5, semi:5},
+      {b:3.5, len:0.5, semi:2},
+    ];
+
+    function scheduleBassBar(when, root, barInPhrase){
+      const isOdd = barInPhrase % 2 === 1;
+      const pat = isOdd ? BASS_PAT_B : BASS_PAT;
+      pat.forEach(hit=>{
+        const t=when+hit.b*B;
+        const ms=(t-ac.currentTime)*1000; if(ms<-50) return;
+        const semi=hit.semi||0;
+        const freq=root * Math.pow(2, semi/12);
+        _mSchedule(()=>{
+          if(!_matchPlaying) return;
+          const now=ac.currentTime;
+          const dur=hit.len*B;
+          const o=ac.createOscillator(); o.type='square';
+          o.frequency.setValueAtTime(freq,now);
+          o.frequency.setValueAtTime(freq*1.002,now+dur*0.5); // subtle pitch wobble
+          const g=ac.createGain();
+          g.gain.setValueAtTime(0,now);
+          g.gain.linearRampToValueAtTime(0.28,now+0.01);
+          g.gain.setValueAtTime(0.28,now+dur-0.04);
+          g.gain.linearRampToValueAtTime(0,now+dur);
+          const flt=ac.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=320; flt.Q.value=2;
+          o.connect(flt); flt.connect(g); g.connect(master);
+          o.start(now); o.stop(now+dur+0.01);
+        }, Math.max(0,ms));
+      });
+    }
+
+    // ── Chord stabs ─────────────────────────────────────
+    // Punchy on beats 1 and 3 (or syncopated in later phrases)
+    function scheduleChordBar(when, key, barInPhrase, phrase){
+      const chord=key.chords[Math.floor(barInPhrase/2) % key.chords.length];
+      const synco = phrase >= 2; // syncopated stabs after phrase 2
+      const stabs = synco
+        ? [{b:0},{b:1.5},{b:2.5},{b:3.5}]  // syncopated
+        : [{b:0},{b:2}];                     // on 1 and 3
+      stabs.forEach(hit=>{
+        const t=when+hit.b*B;
+        const ms=(t-ac.currentTime)*1000; if(ms<-50) return;
+        _mSchedule(()=>{
+          if(!_matchPlaying) return;
+          const now=ac.currentTime;
+          const dur=B*0.55;
+          chord.forEach((f,i)=>{
+            const o=ac.createOscillator(); o.type='sawtooth';
+            o.frequency.setValueAtTime(f,now); o.detune.value=(i-1)*7;
+            const g=ac.createGain();
+            g.gain.setValueAtTime(0,now);
+            g.gain.linearRampToValueAtTime(0.07,now+0.008);
+            g.gain.exponentialRampToValueAtTime(0.001,now+dur);
+            const flt=ac.createBiquadFilter(); flt.type='lowpass'; flt.frequency.value=1400+(i*200); flt.Q.value=1;
+            o.connect(flt); flt.connect(g); g.connect(master);
+            o.start(now); o.stop(now+dur+0.01);
+          });
+        }, Math.max(0,ms));
+      });
+    }
+
+    // ── Lead melody ──────────────────────────────────────
+    // 16-note pattern from key definition, plays one note per 8th
+    // Changes octave on repeat, gets ornaments in later phrases
+    function scheduleLeadBar(when, key, barInPhrase, phrase){
+      const notes=key.lead;
+      const start=barInPhrase*8; // 8 notes per bar (8th notes)
+      for(let i=0;i<8;i++){
+        const freq=notes[(start+i) % notes.length];
+        if(freq===0) continue;
+        const t=when+i*S;
+        const ms=(t-ac.currentTime)*1000; if(ms<-50) continue;
+        // Octave shifts per phrase
+        const mult = phrase<2 ? 1 : phrase<4 ? 1 : 0.5; // drop an octave in phrase 4+
+        const vol=0.06+(phrase*0.008);
+        _mSchedule(()=>{
+          if(!_matchPlaying) return;
+          const now=ac.currentTime;
+          const f=freq*mult;
+          const o=ac.createOscillator();
+          o.type = phrase>=3 ? 'square' : 'triangle'; // grittier lead in later phrases
+          o.frequency.setValueAtTime(f,now);
+          // Pitch envelope (slight scoop up)
+          o.frequency.linearRampToValueAtTime(f*1.003,now+S*0.2);
+          const g=ac.createGain();
+          g.gain.setValueAtTime(0,now);
+          g.gain.linearRampToValueAtTime(vol,now+0.01);
+          g.gain.exponentialRampToValueAtTime(0.001,now+S*0.82);
+          const flt=ac.createBiquadFilter(); flt.type='bandpass'; flt.frequency.value=f*1.3; flt.Q.value=3.5;
+          o.connect(flt); flt.connect(g); g.connect(master);
+          o.start(now); o.stop(now+S);
+          // Grace note ornament (phrase 3+, every 4th note)
+          if(phrase>=3 && i%4===1){
+            const o2=ac.createOscillator(); o2.type='triangle';
+            o2.frequency.setValueAtTime(f*Math.pow(2,2/12),now); // one tone up
+            const g2=ac.createGain();
+            g2.gain.setValueAtTime(vol*0.35,now); g2.gain.exponentialRampToValueAtTime(0.001,now+S*0.2);
+            o2.connect(g2); g2.connect(master); o2.start(now); o2.stop(now+S*0.25);
+          }
+        }, Math.max(0,ms));
+      }
+    }
+
+    // ── Synth riser (before key change) ──────────────────
+    function scheduleRiser(when, dur=Q*2){
+      const o=ac.createOscillator(); o.type='sawtooth';
+      o.frequency.setValueAtTime(60,when);
+      o.frequency.exponentialRampToValueAtTime(480,when+dur);
+      const g=ac.createGain();
+      g.gain.setValueAtTime(0,when);
+      g.gain.linearRampToValueAtTime(0.12,when+dur*0.7);
+      g.gain.linearRampToValueAtTime(0,when+dur);
+      const flt=ac.createBiquadFilter(); flt.type='lowpass';
+      flt.frequency.setValueAtTime(200,when);
+      flt.frequency.exponentialRampToValueAtTime(3000,when+dur);
+      o.connect(flt); flt.connect(g); g.connect(master);
+      o.start(when); o.stop(when+dur+0.05);
+    }
+
+    // ── Phrase runner ─────────────────────────────────────
+    // Each "phrase" = 8 bars. Key changes every 4 phrases (32 bars).
+    function runPhrase(){
+      if(!_matchPlaying) return;
+      const now=ac.currentTime;
+      const key=KEYS[_keyIdx % KEYS.length];
+      const phraseMs=8*Q*1000;
+
+      for(let bar=0;bar<8;bar++){
+        const when=now+bar*Q;
+        const barMs=(when-now)*1000;
+        const barInPhrase=bar;
+
+        // Drums
+        if(_phrase>=1 && bar===7 && _phrase%4===3){
+          // Build bar before key change
+          _mSchedule(()=>{ if(_matchPlaying) DRUM_BUILD(ac.currentTime, bar); }, barMs);
+        } else {
+          _mSchedule(()=>{ if(_matchPlaying) DRUM_MAIN(ac.currentTime, bar, _phrase); }, barMs);
+        }
+        // Bass (start from phrase 0)
+        _mSchedule(()=>scheduleBassBar(ac.currentTime, key.root, barInPhrase), barMs);
+        // Chords (from phrase 0)
+        _mSchedule(()=>scheduleChordBar(ac.currentTime, key, barInPhrase, _phrase), barMs);
+        // Lead (from phrase 1)
+        if(_phrase >= 1){
+          _mSchedule(()=>scheduleLeadBar(ac.currentTime, key, barInPhrase, _phrase), barMs);
+        }
+        // Riser before key change (last 2 bars of every 4th phrase)
+        if(_phrase%4===3 && bar>=6){
+          _mSchedule(()=>scheduleRiser(ac.currentTime, Q*2), barMs);
+        }
+      }
+
+      _phrase++;
+      if(_phrase % 4 === 0) _keyIdx++; // change key every 32 bars
+
+      _mSchedule(runPhrase, phraseMs - 60); // -60ms overlap for seamless loop
+    }
+
+    runPhrase();
+
+  }catch(e){ console.warn('MatchMusic error:',e); _matchPlaying=false; }
+}
+
+function stopMatchMusic(fadeDuration=0.8){
+  if(!_matchPlaying) return;
+  _matchPlaying=false;
+  _mClear();
+  try{
+    const ac=getAC();
+    const now=ac.currentTime;
+    _matchNodes.forEach(n=>{
+      if(n && n.gain && typeof n.gain.cancelScheduledValues==='function'){
+        try{ n.gain.cancelScheduledValues(now); n.gain.setValueAtTime(n.gain.value,now); n.gain.linearRampToValueAtTime(0,now+fadeDuration); }catch(e){}
+      }
+      if(n && typeof n.stop==='function'){ try{ n.stop(now+fadeDuration+0.05); }catch(e){} }
+    });
+  }catch(e){}
+  setTimeout(()=>{ _matchNodes=[]; }, (fadeDuration+0.15)*1000);
 }
 
 document.getElementById('btn-join-card').addEventListener('click',()=>{
@@ -3731,8 +4065,53 @@ document.getElementById('back-from-host').addEventListener('click',()=>{
 document.getElementById('back-from-join').addEventListener('click',()=>{showScreen('s-portal');requestAnimationFrame(animPortal);});
 document.getElementById('btn-join').addEventListener('click',()=>{ SFX.click(); joinRoom(); });
 
-document.getElementById('code-input').addEventListener('keydown',e=>{if(e.key==='Enter')joinRoom();});
-document.getElementById('code-input').addEventListener('input',e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,'');});
+// ── 4-digit code box wiring ─────────────────────────────────
+(function(){
+  const digits = [0,1,2,3].map(i=>document.getElementById('cd-'+i));
+  const hidden = document.getElementById('code-input');
+  const joinBtn = document.getElementById('btn-join');
+
+  function sync(){
+    const val = digits.map(d=>d.value).join('');
+    hidden.value = val;
+    // Update filled styling
+    digits.forEach(d=>d.classList.toggle('filled', d.value.length===1));
+    // Enable join if name also filled
+    const name = document.getElementById('inp-join-name')?.value.trim();
+    if(joinBtn) joinBtn.disabled = (val.length < 4 || !name);
+  }
+
+  digits.forEach((el, i)=>{
+    el.addEventListener('input', e=>{
+      // Keep only one valid char
+      el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(-1);
+      sync();
+      if(el.value && i < 3) digits[i+1].focus();
+    });
+
+    el.addEventListener('keydown', e=>{
+      if(e.key==='Backspace'){
+        if(el.value){ el.value=''; sync(); }
+        else if(i > 0){ digits[i-1].focus(); digits[i-1].value=''; sync(); }
+        e.preventDefault();
+      }
+      if(e.key==='ArrowLeft'  && i > 0) digits[i-1].focus();
+      if(e.key==='ArrowRight' && i < 3) digits[i+1].focus();
+      if(e.key==='Enter') joinRoom();
+    });
+
+    // Handle paste anywhere in the group
+    el.addEventListener('paste', e=>{
+      e.preventDefault();
+      const text = (e.clipboardData||window.clipboardData).getData('text')
+                    .toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,4);
+      text.split('').forEach((ch,j)=>{ if(digits[j]) digits[j].value=ch; });
+      sync();
+      const next = Math.min(text.length, 3);
+      digits[next].focus();
+    });
+  });
+})();
 document.getElementById('btn-start-host').addEventListener('click',()=>{ SFX.click(); launchGame(); });
 document.getElementById('btn-rematch').addEventListener('click',()=>{
   SFX.click();
