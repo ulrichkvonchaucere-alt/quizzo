@@ -1,3 +1,10 @@
+@font-face {
+  font-family: 'CircularStd';
+  src: url('fonts/circularstd_black.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+}
+
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
   --blue:#1368ce;--blue-light:#46a6ff;--blue-dark:#0a3d7a;--blue-btn:#e8f4ff;
@@ -8,7 +15,7 @@
   --bg:#46178f;--card:#ffffff;--text-dark:#1a1a2e;--text-mid:#4a4a6a;
   --opt-a:#e21b3c;--opt-b:#1368ce;--opt-c:#ffa602;--opt-d:#26890c;
   --opt-a-hover:#ff3358;--opt-b-hover:#2a80e8;--opt-c-hover:#ffb830;--opt-d-hover:#3aad18;
-  --font:'Nunito',sans-serif;--font-d:'Fredoka One',cursive;
+  --font:'CircularStd',sans-serif;--font-d:'CircularStd',sans-serif;
   --r6:6px;--r10:10px;--r14:14px;--r20:20px;--r30:30px;
 }
 html,body{height:100%;background:var(--bg);color:var(--text-dark);font-family:var(--font);overflow:hidden;user-select:none;}

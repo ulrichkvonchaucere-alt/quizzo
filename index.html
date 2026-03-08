@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Quizzo — Academic Battle Platform</title>
+<title>Quizzo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -32,7 +32,7 @@
   <div class="portal-ui">
     <div class="logo-wrap">
       <span class="logo-emoji">🪢</span>
-      <div class="logo-title">QUIZZO</div>
+      <div class="logo-title">Quizzo</div>
       <div class="logo-sub">Academic Battle Platform · 1v1 &amp; Group Matches</div>
     </div>
     <div class="mode-cards">
@@ -182,11 +182,7 @@
             <div class="gm-card-title">A B C D</div>
             <div class="gm-card-sub">Four answer options per question. Works with all question banks.</div>
           </div>
-          <div class="gm-card qt-tf" id="qt-tf" onclick="selectQType('tf')">
-            <div class="gm-card-badge" style="background:#e8fff0;color:#1a9e5c;">True / False</div>
-            <div class="gm-card-title">True or False</div>
-            <div class="gm-card-sub">Two big choices only. Great for quick warm-up rounds.</div>
-          </div>
+
         </div>
       </div>
       <div>
@@ -258,10 +254,10 @@
         </div>
       </div>
       <div id="csv-upload-area">
-        <input type="file" id="csv-file-input" accept=".csv">
+        <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls">
         <div class="upload-zone" id="upload-drop-zone">
-          <div class="upload-zone-title">Drop CSV file here or click to upload</div>
-          <div class="upload-zone-sub">Columns: question, option_a, option_b, option_c, option_d, correct (A/B/C/D), difficulty (easy/medium/hard), explanation (optional)</div>
+          <div class="upload-zone-title">Drop CSV or Excel file here or click to upload</div>
+          <div class="upload-zone-sub">Columns: question, option_a, option_b, option_c, option_d, correct (A/B/C/D or TRUE/FALSE), difficulty (easy/medium/hard), explanation (optional)</div>
           <span class="upload-template-link" onclick="downloadCsvTemplate()">Download template CSV</span>
         </div>
         <div class="upload-preview" id="upload-preview"></div>
@@ -603,7 +599,11 @@
       <textarea id="qm-q" rows="3" style="background:#f7f8ff;border:2px solid #e0e4f0;border-radius:var(--r10);color:var(--text-dark);font-family:var(--font);font-size:13px;font-weight:600;padding:9px 12px;width:100%;outline:none;resize:none;" placeholder="Type your question here..."></textarea>
     </div>
     <div style="font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-mid);margin-bottom:9px;">Answer Options — ◉ marks correct answer</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;">
+    <div style="display:flex;gap:8px;margin-bottom:10px;">
+      <button id="qm-btn-abcd" onclick="qmSetType('abcd')" style="flex:1;padding:7px 0;border-radius:var(--r10);border:2px solid var(--blue);background:var(--blue);color:#fff;font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;letter-spacing:1px;">A B C D</button>
+      <button id="qm-btn-tf" onclick="qmSetType('tf')" style="flex:1;padding:7px 0;border-radius:var(--r10);border:2px solid #e0e4f0;background:#f7f8ff;color:var(--text-mid);font-family:var(--font);font-size:11px;font-weight:800;cursor:pointer;letter-spacing:1px;">TRUE / FALSE</button>
+    </div>
+    <div id="qm-abcd-wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:7px;background:#ffe8ec;border-radius:var(--r10);padding:7px 11px;">
         <input type="radio" name="qm-cor" value="0" id="qm-r0" style="width:15px;height:15px;accent-color:var(--red);cursor:pointer;flex-shrink:0;">
         <label for="qm-r0" style="font-family:var(--font-d);font-size:12px;color:var(--red);min-width:12px;">A</label>
@@ -623,6 +623,16 @@
         <input type="radio" name="qm-cor" value="3" id="qm-r3" style="width:15px;height:15px;accent-color:var(--green);cursor:pointer;flex-shrink:0;">
         <label for="qm-r3" style="font-family:var(--font-d);font-size:12px;color:var(--green);min-width:12px;">D</label>
         <input class="qm-opt" id="qm-o3" placeholder="Option D" style="background:transparent;border:none;flex:1;font-family:var(--font);font-size:12px;font-weight:700;color:var(--text-dark);outline:none;">
+      </div>
+    </div>
+    <div id="qm-tf-wrap" style="display:none;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div onclick="document.getElementById('qm-tf-r0').checked=true" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#e8f9e0;border-radius:var(--r10);padding:18px;cursor:pointer;">
+        <input type="radio" name="qm-cor" value="0" id="qm-tf-r0" style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;">
+        <label for="qm-tf-r0" style="font-family:var(--font-d);font-size:16px;color:var(--green);font-weight:800;cursor:pointer;">✓ TRUE</label>
+      </div>
+      <div onclick="document.getElementById('qm-tf-r1').checked=true" style="display:flex;align-items:center;justify-content:center;gap:8px;background:#ffe8ec;border-radius:var(--r10);padding:18px;cursor:pointer;">
+        <input type="radio" name="qm-cor" value="1" id="qm-tf-r1" style="width:16px;height:16px;accent-color:var(--red);cursor:pointer;">
+        <label for="qm-tf-r1" style="font-family:var(--font-d);font-size:16px;color:var(--red);font-weight:800;cursor:pointer;">✗ FALSE</label>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:12px;">
@@ -819,15 +829,15 @@ const MULT_TABLE=[1,1,1.5,2,2.5,3,4,5];
 // ══════════════════════════════════════════════
 //  GAME STATE
 // ══════════════════════════════════════════════
-let ROLE = null;
-let ROOM_CODE = null;
-let MY_TEAM = 'blue';
-let MY_NAME = '';
+var ROLE = null;
+var ROOM_CODE = null;
+var MY_TEAM = 'blue';
+var MY_NAME = '';
 
 // ── Anti-cheat #3 & #5: Persistent browser identity via sessionStorage ──
 // Each browser tab gets a unique PID that persists through refreshes.
 // This lets us reconnect players AND detect multi-tab cheating.
-let BROWSER_PID = sessionStorage.getItem('quizzo_browser_pid');
+var BROWSER_PID = sessionStorage.getItem('quizzo_browser_pid');
 if(!BROWSER_PID){
   BROWSER_PID = 'player_'+Date.now()+'_'+Math.random().toString(36).slice(2,8);
   sessionStorage.setItem('quizzo_browser_pid', BROWSER_PID);
@@ -1525,7 +1535,7 @@ function showLineup(onDone){
 // ══════════════════════════════════════════════
 //  CLIENT FLOW
 // ══════════════════════════════════════════════
-let joinTeamChoice='blue';
+var joinTeamChoice='blue';
 document.getElementById('team-opt-blue').addEventListener('click',()=>{
   joinTeamChoice='blue';
   document.getElementById('team-opt-blue').classList.add('selected');
@@ -4504,14 +4514,32 @@ document.getElementById('btn-load-qs').addEventListener('click',renderQEList);
 document.getElementById('btn-add-q').addEventListener('click',()=>openQModal(-1));
 
 let qEditIdx=-1;
+let _qmType='abcd';
+function qmSetType(type){
+  _qmType=type;
+  const isABCD=(type==='abcd');
+  document.getElementById('qm-abcd-wrap').style.display=isABCD?'grid':'none';
+  document.getElementById('qm-tf-wrap').style.display=isABCD?'none':'grid';
+  const ba=document.getElementById('qm-btn-abcd'),bt=document.getElementById('qm-btn-tf');
+  if(ba){ba.style.background=isABCD?'var(--blue)':'#f7f8ff';ba.style.color=isABCD?'#fff':'var(--text-mid)';ba.style.borderColor=isABCD?'var(--blue)':'#e0e4f0';}
+  if(bt){bt.style.background=isABCD?'#f7f8ff':'#1a9e5c';bt.style.color=isABCD?'var(--text-mid)':'#fff';bt.style.borderColor=isABCD?'#e0e4f0':'#1a9e5c';}
+}
 function openQModal(idx){
   qEditIdx=idx;
   const bank=getActiveBank(), isEdit=idx>=0&&idx<bank.length;
   document.getElementById('qm-title').textContent=isEdit?'EDIT QUESTION':'ADD QUESTION';
   const q=isEdit?bank[idx]:{q:'',o:['','','',''],a:0,d:'medium'};
   document.getElementById('qm-q').value=q.q;
-  [0,1,2,3].forEach(i=>document.getElementById('qm-o'+i).value=q.o[i]||'');
-  document.querySelector(`input[name="qm-cor"][value="${q.a}"]`).checked=true;
+  const isTF=q.o&&q.o.length===2&&q.o[0].toString().toUpperCase()==='TRUE'&&q.o[1].toString().toUpperCase()==='FALSE';
+  qmSetType(isTF?'tf':'abcd');
+  if(isTF){
+    const r=document.querySelector('#qm-tf-wrap input[name="qm-cor"][value="'+q.a+'"]');
+    if(r) r.checked=true;
+  } else {
+    [0,1,2,3].forEach(i=>{ const el=document.getElementById('qm-o'+i); if(el) el.value=q.o[i]||''; });
+    const r=document.querySelector('#qm-abcd-wrap input[name="qm-cor"][value="'+q.a+'"]');
+    if(r) r.checked=true;
+  }
   document.getElementById('qm-diff').value=q.d||'medium';
   document.getElementById('qm-explanation').value=q.explanation||'';
   document.getElementById('q-modal').style.display='flex';
@@ -4521,10 +4549,15 @@ function closeQModal(){ document.getElementById('q-modal').style.display='none';
 function saveQModal(){
   const txt=document.getElementById('qm-q').value.trim();
   if(!txt){alert('Enter a question.');return;}
-  const opts=[0,1,2,3].map(i=>document.getElementById('qm-o'+i).value.trim());
-  if(opts.some(o=>!o)){alert('Fill in all 4 options.');return;}
   const cor=document.querySelector('input[name="qm-cor"]:checked');
   if(!cor){alert('Select the correct answer.');return;}
+  let opts;
+  if(_qmType==='tf'){
+    opts=['True','False'];
+  } else {
+    opts=[0,1,2,3].map(i=>document.getElementById('qm-o'+i).value.trim());
+    if(opts.some(o=>!o)){alert('Fill in all 4 options.');return;}
+  }
   const q={q:txt,o:opts,a:+cor.value,d:document.getElementById('qm-diff').value,explanation:document.getElementById('qm-explanation').value.trim()};
   const bank=getActiveBank();
   if(qEditIdx>=0&&qEditIdx<bank.length) bank[qEditIdx]=q; else bank.push(q);
@@ -4605,7 +4638,7 @@ function parseCsvRows(rawText){
   }
 
   // Map correct answer to index — accept A/B/C/D or 0/1/2/3 or 1/2/3/4
-  const cmap={'A':0,'B':1,'C':2,'D':3,'0':0,'1':1,'2':2,'3':3};
+  const cmap={'A':0,'B':1,'C':2,'D':3,'0':0,'1':1,'2':2,'3':3,'TRUE':0,'FALSE':1,'T':0,'F':1};
   const cmap1={'1':0,'2':1,'3':2,'4':3}; // 1-indexed
 
   for(let i=1;i<allRows.length;i++){
@@ -4645,33 +4678,54 @@ function parseCsvRows(rawText){
   return{questions,errors};
 }
 
+function _finishUpload(text,preview){
+  const{questions,errors}=parseCsvRows(text);
+  preview.innerHTML='';
+  if(!questions.length){
+    preview.innerHTML='<div class="upload-stat err">✗ No valid questions found</div>'
+      +(errors.length?'<div class="upload-error-list">'+errors.map(e=>'• '+e).join('<br>')+'</div>':'');
+    return;
+  }
+  customBanks['custom_upload']=questions;
+  let sel=document.getElementById('sel-subject');
+  let opt=sel.querySelector('option[value="custom_upload"]');
+  if(!opt){ opt=document.createElement('option'); opt.value='custom_upload'; sel.appendChild(opt); }
+  opt.textContent='📂 Uploaded ('+questions.length+' Qs)';
+  sel.value='custom_upload';
+  renderQEList();
+  preview.innerHTML='<div class="upload-stat ok">✓ '+questions.length+' question'+(questions.length!==1?'s':'')+' imported</div>'
+    +(errors.length?'<div class="upload-stat warn">⚠ '+errors.length+' row'+(errors.length!==1?'s':'')+' skipped</div><div class="upload-error-list">'+errors.map(e=>'• '+e).join('<br>')+'</div>':'');
+}
 function processUploadedFile(file){
   const preview=document.getElementById('upload-preview');
   preview.innerHTML='<div class="upload-stat" style="color:#888">Reading file...</div>';
   preview.classList.add('show');
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const text=e.target.result;
-    const{questions,errors}=parseCsvRows(text);
-    preview.innerHTML='';
-    if(!questions.length){
-      preview.innerHTML=`<div class="upload-stat err">✗ No valid questions found</div>`
-        +(errors.length?`<div class="upload-error-list">${errors.map(e=>`• ${e}`).join('<br>')}</div>`:'');
-      return;
-    }
-    // Store under its own key — never overwrite built-in banks
-    customBanks['custom_upload']=questions;
-    let sel=document.getElementById('sel-subject');
-    let opt=sel.querySelector('option[value="custom_upload"]');
-    if(!opt){ opt=document.createElement('option'); opt.value='custom_upload'; sel.appendChild(opt); }
-    opt.textContent=`📂 Uploaded (${questions.length} Qs)`;
-    sel.value='custom_upload';
-    renderQEList();
-    preview.innerHTML=`<div class="upload-stat ok">✓ ${questions.length} question${questions.length!==1?'s':''} imported</div>`
-      +(errors.length?`<div class="upload-stat warn">⚠ ${errors.length} row${errors.length!==1?'s':''} skipped</div><div class="upload-error-list">${errors.map(e=>`• ${e}`).join('<br>')}</div>`:'');
-  };
-  reader.onerror=()=>{ preview.innerHTML='<div class="upload-stat err">✗ Could not read file</div>'; };
-  reader.readAsText(file, 'UTF-8');
+  if(/\.xlsx?$/i.test(file.name)){
+    const run=()=>{
+      const r=new FileReader();
+      r.onload=e=>{
+        try{
+          const wb=XLSX.read(e.target.result,{type:'array'});
+          const csv=XLSX.utils.sheet_to_csv(wb.Sheets[wb.SheetNames[0]]);
+          _finishUpload(csv,preview);
+        }catch(err){ preview.innerHTML='<div class="upload-stat err">✗ Could not parse Excel: '+err.message+'</div>'; }
+      };
+      r.onerror=()=>{ preview.innerHTML='<div class="upload-stat err">✗ Could not read file</div>'; };
+      r.readAsArrayBuffer(file);
+    };
+    if(typeof XLSX==='undefined'){
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      s.onload=run;
+      s.onerror=()=>{ preview.innerHTML='<div class="upload-stat err">✗ Could not load Excel reader. Try saving as CSV instead.</div>'; };
+      document.head.appendChild(s);
+    } else { run(); }
+  } else {
+    const reader=new FileReader();
+    reader.onload=e=>_finishUpload(e.target.result,preview);
+    reader.onerror=()=>{ preview.innerHTML='<div class="upload-stat err">✗ Could not read file</div>'; };
+    reader.readAsText(file,'UTF-8');
+  }
 }
 
 (function(){
